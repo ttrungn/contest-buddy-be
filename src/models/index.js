@@ -13,8 +13,7 @@ const db = {};
 const basename = path.basename(__filename);
 
 // 🔹 Tạo URL kết nối MongoDB từ biến môi trường `.env`
-const mongoURI =
-  process.env.MONGO_URI || "mongodb://localhost:27017/my_database";
+const mongoURI = process.env.MONGO_URI;
 
 // 🔹 Kết nối MongoDB
 mongoose.connect(mongoURI, {
@@ -44,7 +43,17 @@ for (const file of modelFiles) {
   try {
     const modelModule = await import(path.join(__dirname, file));
     const model = modelModule.default;
-    db[model.modelName] = model;
+    if (model && model.modelName) {
+      // Store model with both the exact modelName and a capitalized version for consistency
+      db[model.modelName] = model;
+
+      // Also store with capitalized name for consistent access
+      const capitalizedName =
+        model.modelName.charAt(0).toUpperCase() + model.modelName.slice(1);
+      db[capitalizedName] = model;
+    } else {
+      console.error(`Model in ${file} has no modelName property:`, model);
+    }
   } catch (error) {
     console.error(`Error importing model ${file}:`, error);
   }
