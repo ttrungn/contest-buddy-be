@@ -53,6 +53,25 @@ import {
   handleDeleteUserProject,
   handleGetProjectById,
 } from "../controllers/projectsController.js";
+import {
+  handleCreateTeam,
+  handleGetTeamById,
+  handleUpdateTeam,
+  handleDeleteTeam,
+  handleGetTeamMembers,
+  handleRemoveTeamMember,
+  handleGetUserTeams,
+  handleChangeTeamMemberRole,
+} from "../controllers/teamController.js";
+import {
+  handleCreateInvitation,
+  handleGetInvitationById,
+  handleGetTeamInvitations,
+  handleGetUserInvitations,
+  handleAcceptInvitation,
+  handleRejectInvitation,
+  handleCancelInvitation,
+} from "../controllers/teamInvitationController.js";
 
 let router = express.Router();
 
@@ -197,6 +216,66 @@ let initWebRoutes = (app) => {
     verifyToken,
     isVerified,
     handleDeleteUserProject
+  );
+
+  // Team routes
+  router.post("/api/teams", verifyToken, isVerified, handleCreateTeam);
+  router.get("/api/teams/:teamId", handleGetTeamById);
+  router.put("/api/teams/:teamId", verifyToken, isVerified, handleUpdateTeam);
+  router.delete(
+    "/api/teams/:teamId",
+    verifyToken,
+    isVerified,
+    handleDeleteTeam
+  );
+  router.get("/api/teams/:teamId/members", handleGetTeamMembers);
+  router.delete(
+    "/api/teams/:teamId/members/:memberId",
+    verifyToken,
+    isVerified,
+    handleRemoveTeamMember
+  );
+  router.put(
+    "/api/teams/:teamId/members/:memberId/role",
+    verifyToken,
+    isVerified,
+    handleChangeTeamMemberRole
+  );
+  router.get("/api/user/teams", verifyToken, handleGetUserTeams);
+  router.get("/api/user/:userId/teams", handleGetUserTeams);
+
+  // Team invitation routes
+  router.post(
+    "/api/team-invitations",
+    verifyToken,
+    isVerified,
+    handleCreateInvitation
+  );
+  router.get("/api/team-invitations/:invitationId", handleGetInvitationById);
+  router.get(
+    "/api/teams/:teamId/invitations",
+    verifyToken,
+    isVerified,
+    handleGetTeamInvitations
+  );
+  router.get("/api/user/invitations", verifyToken, handleGetUserInvitations);
+  router.post(
+    "/api/team-invitations/:invitationId/accept",
+    verifyToken,
+    isVerified,
+    handleAcceptInvitation
+  );
+  router.post(
+    "/api/team-invitations/:invitationId/reject",
+    verifyToken,
+    isVerified,
+    handleRejectInvitation
+  );
+  router.post(
+    "/api/team-invitations/:invitationId/cancel",
+    verifyToken,
+    isVerified,
+    handleCancelInvitation
   );
 
   return app.use("/", router);
