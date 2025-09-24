@@ -24,7 +24,8 @@
     "mongodb": "^6.15.0",
     "mongoose": "^8.12.1",
     "multer": "^2.0.2",
-    "nodemailer": "^7.0.6"
+    "nodemailer": "^7.0.6",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",
