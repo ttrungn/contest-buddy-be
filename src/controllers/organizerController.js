@@ -4,7 +4,25 @@ import cloudinaryService from "../services/cloudinaryService.js";
 // Register new organizer
 const handleRegisterOrganizer = async (req, res) => {
   try {
-    const { user, organizer } = req.body;
+    let user, organizer;
+
+    // Handle different content types
+    if (req.is("multipart/form-data")) {
+      // For multipart form data, parse JSON strings from form fields
+      try {
+        user = req.body.user ? JSON.parse(req.body.user) : null;
+        organizer = req.body.organizer ? JSON.parse(req.body.organizer) : null;
+      } catch (parseError) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid JSON format in form data fields",
+        });
+      }
+    } else {
+      // For regular JSON requests
+      user = req.body.user;
+      organizer = req.body.organizer;
+    }
 
     // Validate required user fields
     const requiredUserFields = ["username", "password", "full_name", "email"];
