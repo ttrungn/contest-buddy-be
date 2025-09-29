@@ -19,6 +19,7 @@ app.use(
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.set("trust proxy", 1);
 
 viewEngine(app);
 initWebRoutes(app);

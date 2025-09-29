@@ -76,6 +76,11 @@ import {
 let router = express.Router();
 
 let initWebRoutes = (app) => {
+  // Health check route
+  router.get("/api/health", (req, res) => {
+    res.status(200).json({ status: "success", message: "API is healthy" });
+  });
+
   // Authentication routes
   router.post("/api/auth/register", handleRegister);
   router.post(
