@@ -72,6 +72,36 @@ import {
   handleRejectInvitation,
   handleCancelInvitation,
 } from "../controllers/teamInvitationController.js";
+import {
+  handleCreateCompetition,
+  handleGetCompetitionById,
+  handleGetAllCompetitions,
+  handleUpdateCompetition,
+  handleDeleteCompetition,
+  handleGetCompetitionsByCategory,
+  handleGetCompetitionsByStatus,
+  handleGetFeaturedCompetitions,
+  handleGetCompetitionParticipants,
+} from "../controllers/competitionsController.js";
+import {
+  handleCreateSkill,
+  handleGetSkillById,
+  handleGetAllSkillsNew,
+  handleUpdateSkill,
+  handleDeleteSkill,
+  handleGetSkillsByCategory,
+  handleSearchSkills,
+} from "../controllers/skillsController.js";
+import {
+  handleCreatePlan,
+  handleGetAllPlans,
+  handleGetPlanById,
+  handleUpdatePlan,
+  handleDeletePlan,
+  handleGetPlansByStatus,
+  handleGetPlanWithFeatures,
+  handleUpdatePlanStatus,
+} from "../controllers/plansController.js";
 
 let router = express.Router();
 
@@ -281,6 +311,93 @@ let initWebRoutes = (app) => {
     verifyToken,
     isVerified,
     handleCancelInvitation
+  );
+
+  // Competition routes
+  router.post(
+    "/api/competitions",
+    verifyToken,
+    isVerified,
+    isAdminOrOrganizer,
+    handleCreateCompetition
+  );
+  router.get("/api/competitions", handleGetAllCompetitions);
+  router.get("/api/competitions/featured", handleGetFeaturedCompetitions);
+  router.get(
+    "/api/competitions/category/:category",
+    handleGetCompetitionsByCategory
+  );
+  router.get("/api/competitions/status/:status", handleGetCompetitionsByStatus);
+  router.get("/api/competitions/:competitionId", handleGetCompetitionById);
+  router.get("/api/competitions/:competitionId/participants", handleGetCompetitionParticipants);
+  router.put(
+    "/api/competitions/:competitionId",
+    verifyToken,
+    isVerified,
+    isAdminOrOrganizer,
+    handleUpdateCompetition
+  );
+  router.delete(
+    "/api/competitions/:competitionId",
+    verifyToken,
+    isVerified,
+    isAdminOrOrganizer,
+    handleDeleteCompetition
+  );
+
+  // Skills routes (new CRUD endpoints)
+  router.post(
+    "/api/skills/create",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleCreateSkill
+  );
+  router.get("/api/skills/all", handleGetAllSkillsNew);
+  router.get("/api/skills/search", handleSearchSkills);
+  router.get("/api/skills/category/:category", handleGetSkillsByCategory);
+  router.get("/api/skills/:skillId", handleGetSkillById);
+  router.put(
+    "/api/skills/:skillId",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleUpdateSkill
+  );
+  router.delete(
+    "/api/skills/:skillId",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleDeleteSkill
+  );
+
+  // Plans routes
+  router.post("/api/plans", verifyToken, isVerified, isAdmin, handleCreatePlan);
+  router.get("/api/plans", handleGetAllPlans);
+  router.get("/api/plans/:id", handleGetPlanById);
+  router.get("/api/plans/:id/features", handleGetPlanWithFeatures);
+  router.get("/api/plans/status/:status", handleGetPlansByStatus);
+  router.put(
+    "/api/plans/:id",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleUpdatePlan
+  );
+  router.patch(
+    "/api/plans/:id/status",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleUpdatePlanStatus
+  );
+  router.delete(
+    "/api/plans/:id",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleDeletePlan
   );
 
   return app.use("/", router);

@@ -12,7 +12,7 @@ dotenv.config(); // Load biến môi trường từ .env
 let app = express();
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://resonant-malasada-5c771a.netlify.app",
+  process.env.FRONTEND_URL,
 ].filter(Boolean);
 app.set("trust proxy", 1);
 app.use(
@@ -24,6 +24,7 @@ app.use(
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.set("trust proxy", 1);
 
 viewEngine(app);
 initWebRoutes(app);
