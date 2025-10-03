@@ -54,6 +54,14 @@ import {
   handleGetProjectById,
 } from "../controllers/projectsController.js";
 import {
+  handleCreateDirectConversation,
+  handleGetUserConversations,
+  handleGetConversationById,
+  handleGetConversationMessages,
+  handleSendMessage,
+  handleMarkConversationAsRead,
+} from "../controllers/chatController.js";
+import {
   handleCreateTeam,
   handleGetTeamById,
   handleUpdateTeam,
@@ -216,6 +224,44 @@ let initWebRoutes = (app) => {
     verifyToken,
     isVerified,
     handleDeleteUserProject
+  );
+
+  // Chat routes
+  router.post(
+    "/api/chat/conversations/direct",
+    verifyToken,
+    isVerified,
+    handleCreateDirectConversation
+  );
+  router.get(
+    "/api/chat/conversations",
+    verifyToken,
+    isVerified,
+    handleGetUserConversations
+  );
+  router.get(
+    "/api/chat/conversations/:conversationId",
+    verifyToken,
+    isVerified,
+    handleGetConversationById
+  );
+  router.get(
+    "/api/chat/conversations/:conversationId/messages",
+    verifyToken,
+    isVerified,
+    handleGetConversationMessages
+  );
+  router.post(
+    "/api/chat/conversations/:conversationId/messages",
+    verifyToken,
+    isVerified,
+    handleSendMessage
+  );
+  router.post(
+    "/api/chat/conversations/:conversationId/read",
+    verifyToken,
+    isVerified,
+    handleMarkConversationAsRead
   );
 
   // Team routes
