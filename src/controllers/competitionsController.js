@@ -8,6 +8,7 @@ import {
   getCompetitionsByStatus,
   getFeaturedCompetitions,
   getCompetitionParticipants,
+  getCompetitionConstants,
 } from "../services/competitionsService.js";
 
 // Create a new competition
@@ -119,7 +120,6 @@ export const handleUpdateCompetition = async (req, res) => {
     const { competitionId } = req.params;
     const updateData = req.body;
     const userId = req.user?.id; // Get userId from authenticated user
-
     if (!userId) {
       return res.status(401).json({
         status: "error",
@@ -292,7 +292,7 @@ export const handleGetCompetitionParticipants = async (req, res) => {
     });
   } catch (error) {
     console.error("Error getting competition participants:", error);
-    
+
     if (error.message.includes("Competition not found")) {
       return res.status(404).json({
         status: "error",
@@ -303,6 +303,24 @@ export const handleGetCompetitionParticipants = async (req, res) => {
     res.status(500).json({
       status: "error",
       message: error.message || "Failed to get competition participants",
+    });
+  }
+};
+
+// Get competition constants (categories, levels, statuses)
+export const handleGetCompetitionConstants = async (req, res) => {
+  try {
+    const constants = await getCompetitionConstants();
+
+    res.status(200).json({
+      status: "success",
+      data: constants,
+    });
+  } catch (error) {
+    console.error("Error getting competition constants:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message || "Failed to get competition constants",
     });
   }
 };

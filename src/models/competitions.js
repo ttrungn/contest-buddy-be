@@ -82,6 +82,14 @@ const CompetitionsSchema = new mongoose.Schema({
   max_participants: {
     type: Number,
   },
+  isRegisteredAsTeam: {
+    type: Boolean,
+    default: false,
+  },
+  maxParticipantsPerTeam: {
+    type: Number,
+    default: 1,
+  },
   level: {
     type: String,
     required: true,

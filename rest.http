@@ -1,8 +1,8 @@
 # Contest Buddy Backend API Tests
 # Base URL
-@baseUrl = 
+@baseUrl = http://localhost:8080
 @token = 
-@organizerToken = 
+@organizerToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRiZGM0MDIzMjNhNGQ5ZTZlMmQwNDFiMjYxODAxODg2IiwiaWF0IjoxNzU5NDY0OTc0LCJleHAiOjE3NTk1NTEzNzR9.zYXC3oLxkCSpJX1k8KbCE5bxRCNlVyIPJvnHKdVTwOE
 @adminToken = 
 
 ###############################################################################
@@ -85,6 +85,51 @@ Content-Type: application/json
 Authorization: Bearer {{organizerToken}}
 
 {
+  "title": "AI Hackathon 2025 Test",
+  "description": "Build the next generation AI application",
+  "category": "hackathon",
+  "plan_id": "ca58db41d3eddd180d28acdf257668bd",
+  "organizer_id": "org-123",
+  "start_date": "2025-03-01T09:00:00Z",
+  "end_date": "2025-03-03T18:00:00Z",
+  "registration_deadline": "2025-02-25T23:59:59Z",
+  "location": "San Francisco, CA",
+  "prize_pool_text": "$50,000 in prizes",
+  "max_participants": 200,
+  "level": "intermediate",
+  "image_url": "https://example.com/hackathon-image.jpg",
+  "website": "https://ai-hackathon-2025.com",
+  "rules": "Standard hackathon rules apply. No pre-existing code allowed.",
+  "featured": true,
+  "status": "published",
+  "competitionTags": [
+    "AI",
+    "Machine Learning",
+    "Innovation",
+    "2025"
+  ],
+  "competitionRequiredSkills": [
+    {
+      "name": "Python"
+    },
+    {
+      "name": "Machine Learning"
+    },
+    {
+      "name": "UI/UX Design"
+    },
+    {
+      "name": "Team Collaboration"
+    }
+  ]
+}
+
+### Create Competition with Team Registration
+POST {{baseUrl}}/api/competitions
+Content-Type: application/json
+Authorization: Bearer {{organizerToken}}
+
+{
   "title": "AI Hackathon 2025",
   "description": "Build the next generation AI application",
   "category": "hackathon",
@@ -96,6 +141,8 @@ Authorization: Bearer {{organizerToken}}
   "location": "San Francisco, CA",
   "prize_pool_text": "$50,000 in prizes",
   "max_participants": 200,
+  "isRegisteredAsTeam": true,
+  "maxParticipantsPerTeam": 4,
   "level": "intermediate",
   "image_url": "https://example.com/hackathon-image.jpg",
   "website": "https://ai-hackathon-2025.com",
@@ -140,6 +187,9 @@ GET {{baseUrl}}/api/competitions/eaec3450-d99e-4500-9c89-4e64d1df20b1
 ### Get Featured Competitions
 GET {{baseUrl}}/api/competitions/featured
 
+### Get Competition Constants (Categories, Levels, Statuses)
+GET {{baseUrl}}/api/competitions/constants
+
 ### Get Competitions by Category
 GET {{baseUrl}}/api/competitions/category/hackathon
 
@@ -147,7 +197,7 @@ GET {{baseUrl}}/api/competitions/category/hackathon
 GET {{baseUrl}}/api/competitions/status/published
 
 ### Update Competition
-PUT {{baseUrl}}/api/competitions/comp-123
+PUT {{baseUrl}}/api/competitions/f52f21f7-7c06-42d8-9740-173293a7b11a
 Content-Type: application/json
 Authorization: Bearer {{organizerToken}}
 
@@ -166,19 +216,15 @@ Authorization: Bearer {{organizerToken}}
   "competitionRequiredSkills": [
     {
       "name": "JavaScript",
-      "category": "technical"
     },
     {
       "name": "React",
-      "category": "technical"
     },
     {
       "name": "Node.js",
-      "category": "technical"
     },
     {
       "name": "Project Management",
-      "category": "soft"
     }
   ]
 }

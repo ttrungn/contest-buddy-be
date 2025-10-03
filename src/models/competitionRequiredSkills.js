@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { SKILL_CATEGORIES } from "./skills.js";
 
 const CompetitionRequiredSkillsSchema = new mongoose.Schema({
   competition_id: {
@@ -10,11 +9,6 @@ const CompetitionRequiredSkillsSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-  },
-  category: {
-    type: String,
-    required: true,
-    enum: Object.values(SKILL_CATEGORIES),
   },
 });
 

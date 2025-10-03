@@ -1,4 +1,8 @@
-import Competitions from "../models/competitions.js";
+import Competitions, {
+  COMPETITION_CATEGORIES,
+  COMPETITION_LEVELS,
+  COMPETITION_STATUSES,
+} from "../models/competitions.js";
 import CompetitionTags from "../models/competitionTags.js";
 import CompetitionRequiredSkills from "../models/competitionRequiredSkills.js";
 import CompetitionParticipants from "../models/competitionParticipants.js";
@@ -15,6 +19,25 @@ export const createCompetition = async (competitionData, userId) => {
       competitionTags = [],
       ...mainCompetitionData
     } = competitionData;
+
+    if (
+      mainCompetitionData.maxParticipantsPerTeam &&
+      !mainCompetitionData.isRegisteredAsTeam
+    ) {
+      throw new Error(
+        "maxParticipantsPerTeam can only be set if isRegisteredAsTeam is true"
+      );
+    }
+
+    if (
+      mainCompetitionData.isRegisteredAsTeam &&
+      (!mainCompetitionData.maxParticipantsPerTeam ||
+        mainCompetitionData.maxParticipantsPerTeam < 1)
+    ) {
+      throw new Error(
+        "maxParticipantsPerTeam must be at least 1 when isRegisteredAsTeam is true"
+      );
+    }
 
     // Generate unique ID if not provided
     if (!mainCompetitionData.id) {
@@ -95,7 +118,12 @@ export const createCompetition = async (competitionData, userId) => {
       await CompetitionRequiredSkills.insertMany(skillsToInsert);
     }
 
-    return competition;
+    // Return competition with tags and required skills populated
+    const result = competition.toObject();
+    result.competitionTags = competitionTags;
+    result.competitionRequiredSkills = competitionRequiredSkills;
+
+    return result;
   } catch (error) {
     throw new Error(`Failed to create competition: ${error.message}`);
   }
@@ -169,8 +197,33 @@ export const getAllCompetitions = async (filters = {}, options = {}) => {
     const total = await Competitions.countDocuments(filters);
     const totalPages = Math.ceil(total / limit);
 
+    // Populate tags and required skills for each competition
+    const competitionsWithDetails = await Promise.all(
+      competitions.map(async (competition) => {
+        const competitionObj = competition.toObject();
+
+        // Get competition tags
+        const competitionTags = await CompetitionTags.find(
+          { competition_id: competition.id },
+          { tag: 1, _id: 0 }
+        );
+
+        // Get competition required skills
+        const competitionRequiredSkills = await CompetitionRequiredSkills.find(
+          { competition_id: competition.id },
+          { name: 1, category: 1, _id: 0 }
+        );
+
+        // Add tags and required skills
+        competitionObj.competitionTags = competitionTags.map((tag) => tag.tag);
+        competitionObj.competitionRequiredSkills = competitionRequiredSkills;
+
+        return competitionObj;
+      })
+    );
+
     return {
-      data: competitions,
+      data: competitionsWithDetails,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -215,9 +268,22 @@ export const updateCompetition = async (competitionId, updateData, userId) => {
       const userRoles = await db.UserRoles.find({ user_id: userId });
       const isAdmin = userRoles.some((role) => role.role_id === 1); // Assuming role_id 1 is admin
 
+      console.log("DEBUG - Update Competition Authorization:");
+      console.log("userId:", userId);
+      console.log("isAdmin:", isAdmin);
+      console.log(
+        "existingCompetition.organizer_id:",
+        existingCompetition.organizer_id
+      );
+
       if (!isAdmin) {
         // If not admin, check if user is the organizer of this competition
-        const organizer = await db.Organizers.findOne({ user_id: userId });
+        const organizer = await db.Organizers.findOne({
+          owner_user_id: userId,
+        });
+        console.log("organizer found:", organizer);
+        console.log("organizer.id:", organizer?.id);
+
         if (!organizer || organizer.id !== existingCompetition.organizer_id) {
           throw new Error("Not authorized to update this competition");
         }
@@ -226,6 +292,26 @@ export const updateCompetition = async (competitionId, updateData, userId) => {
 
     // Remove organizer_id from update data (cannot be changed)
     delete mainUpdateData.organizer_id;
+
+    // Validate team-related fields
+    if (
+      mainUpdateData.maxParticipantsPerTeam &&
+      !mainUpdateData.isRegisteredAsTeam
+    ) {
+      throw new Error(
+        "maxParticipantsPerTeam can only be set if isRegisteredAsTeam is true"
+      );
+    }
+
+    if (
+      mainUpdateData.isRegisteredAsTeam &&
+      (!mainUpdateData.maxParticipantsPerTeam ||
+        mainUpdateData.maxParticipantsPerTeam < 1)
+    ) {
+      throw new Error(
+        "maxParticipantsPerTeam must be at least 1 when isRegisteredAsTeam is true"
+      );
+    }
 
     // Validate plan_id if being updated
     if (mainUpdateData.plan_id) {
@@ -308,6 +394,23 @@ export const updateCompetition = async (competitionId, updateData, userId) => {
       if (organizerData) result.organizer = organizerData;
     }
 
+    // Get updated competition tags
+    const updatedCompetitionTags = await CompetitionTags.find(
+      { competition_id: competitionId },
+      { tag: 1, _id: 0 }
+    );
+
+    // Get updated competition required skills
+    const updatedCompetitionRequiredSkills =
+      await CompetitionRequiredSkills.find(
+        { competition_id: competitionId },
+        { name: 1, category: 1, _id: 0 }
+      );
+
+    // Add tags and required skills to result
+    result.competitionTags = updatedCompetitionTags.map((tag) => tag.tag);
+    result.competitionRequiredSkills = updatedCompetitionRequiredSkills;
+
     return result;
   } catch (error) {
     throw new Error(`Failed to update competition: ${error.message}`);
@@ -378,7 +481,10 @@ export const searchCompetitions = async (searchTerm, options = {}) => {
 };
 
 // Get competition participants by competition ID
-export const getCompetitionParticipants = async (competitionId, options = {}) => {
+export const getCompetitionParticipants = async (
+  competitionId,
+  options = {}
+) => {
   try {
     const { page = 1, limit = 10 } = options;
     const skip = (page - 1) * limit;
@@ -390,8 +496,8 @@ export const getCompetitionParticipants = async (competitionId, options = {}) =>
     }
 
     // Find the competition management record for this competition
-    const managementRecord = await CompetitionManagement.findOne({ 
-      competition_id: competitionId 
+    const managementRecord = await CompetitionManagement.findOne({
+      competition_id: competitionId,
     });
 
     if (!managementRecord) {
@@ -410,15 +516,15 @@ export const getCompetitionParticipants = async (competitionId, options = {}) =>
     }
 
     // Get participants for this competition through the management record
-    const participants = await CompetitionParticipants.find({ 
-      management_id: managementRecord.id 
+    const participants = await CompetitionParticipants.find({
+      management_id: managementRecord.id,
     })
       .sort({ registration_date: -1 })
       .skip(skip)
       .limit(parseInt(limit));
 
-    const total = await CompetitionParticipants.countDocuments({ 
-      management_id: managementRecord.id 
+    const total = await CompetitionParticipants.countDocuments({
+      management_id: managementRecord.id,
     });
     const totalPages = Math.ceil(total / limit);
 
@@ -426,7 +532,7 @@ export const getCompetitionParticipants = async (competitionId, options = {}) =>
     const participantsWithUserData = await Promise.all(
       participants.map(async (participant) => {
         const participantObj = participant.toObject();
-        
+
         // Get user information
         if (db.User) {
           const user = await db.User.findOne(
@@ -455,5 +561,18 @@ export const getCompetitionParticipants = async (competitionId, options = {}) =>
     };
   } catch (error) {
     throw new Error(`Failed to get competition participants: ${error.message}`);
+  }
+};
+
+// Get competition constants (categories, levels, statuses)
+export const getCompetitionConstants = async () => {
+  try {
+    return {
+      categories: COMPETITION_CATEGORIES,
+      levels: COMPETITION_LEVELS,
+      statuses: COMPETITION_STATUSES,
+    };
+  } catch (error) {
+    throw new Error(`Failed to get competition constants: ${error.message}`);
   }
 };

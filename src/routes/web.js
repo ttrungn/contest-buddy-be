@@ -82,6 +82,7 @@ import {
   handleGetCompetitionsByStatus,
   handleGetFeaturedCompetitions,
   handleGetCompetitionParticipants,
+  handleGetCompetitionConstants,
 } from "../controllers/competitionsController.js";
 import {
   handleCreateSkill,
@@ -321,6 +322,7 @@ let initWebRoutes = (app) => {
     isAdminOrOrganizer,
     handleCreateCompetition
   );
+  router.get("/api/competitions/constants", handleGetCompetitionConstants);
   router.get("/api/competitions", handleGetAllCompetitions);
   router.get("/api/competitions/featured", handleGetFeaturedCompetitions);
   router.get(
