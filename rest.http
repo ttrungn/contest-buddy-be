@@ -1,0 +1,807 @@
+# Contest Buddy Backend API Tests
+# Base URL
+@baseUrl = http://localhost:8080
+@token = 
+@organizerToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRiZGM0MDIzMjNhNGQ5ZTZlMmQwNDFiMjYxODAxODg2IiwiaWF0IjoxNzU5NDY0OTc0LCJleHAiOjE3NTk1NTEzNzR9.zYXC3oLxkCSpJX1k8KbCE5bxRCNlVyIPJvnHKdVTwOE
+@adminToken = 
+
+###############################################################################
+# 🔐 AUTHENTICATION ENDPOINTS
+###############################################################################
+
+### Register User
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@example.com",
+  "password": "password123",
+  "full_name": "Test User",
+  "school": "Test University",
+  "city": "Test City",
+  "region": "Test Region",
+  "country": "Test Country",
+  "study_field": "Computer Science"
+}
+
+### Login User
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "testorganizer5@example.com",
+  "password": "password123"
+}
+
+### Register Organizer (JSON Format)
+POST {{baseUrl}}/api/auth/register/organizer
+Content-Type: application/json
+
+{
+  "user": {
+    "username": "testorganizer5",
+    "email": "testorganizer5@example.com",
+    "password": "password123",
+    "full_name": "Test Organizer"
+  },
+  "organizer": {
+    "name": "Test Organization 5",
+    "organization_name": "Test Organization 5",
+    "email": "org5@example.com",
+    "description": "A test organization for hackathons",
+    "address": "123 Test Street, Test City, TC 12345",
+    "phone": "+1-555-0123",
+    "website": "https://testorg.com"
+  }
+}
+
+### Register Organizer (with File Upload - Use a REST client that supports file uploads)
+POST {{baseUrl}}/api/auth/register/organizer
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="user"
+
+{"username":"testorganizer2","email":"testorganizer2@example.com","password":"password123","full_name":"Test Organizer 2"}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="organizer"
+
+{"name":"Test Organization 2","email":"org2@example.com","description":"Another test organization","address":"456 Test Ave, Test City, TC 12345","phone":"+1-555-0124","website":"https://testorg2.com"}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="avatar"; filename="avatar.jpg"
+Content-Type: image/jpeg
+
+(binary image data would go here - use a REST client like Postman or Thunder Client to upload actual files)
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###############################################################################
+# 🏆 COMPETITIONS ENDPOINTS
+###############################################################################
+
+### Create Competition
+POST {{baseUrl}}/api/competitions
+Content-Type: application/json
+Authorization: Bearer {{organizerToken}}
+
+{
+  "title": "AI Hackathon 2025 Test",
+  "description": "Build the next generation AI application",
+  "category": "hackathon",
+  "plan_id": "ca58db41d3eddd180d28acdf257668bd",
+  "organizer_id": "org-123",
+  "start_date": "2025-03-01T09:00:00Z",
+  "end_date": "2025-03-03T18:00:00Z",
+  "registration_deadline": "2025-02-25T23:59:59Z",
+  "location": "San Francisco, CA",
+  "prize_pool_text": "$50,000 in prizes",
+  "max_participants": 200,
+  "level": "intermediate",
+  "image_url": "https://example.com/hackathon-image.jpg",
+  "website": "https://ai-hackathon-2025.com",
+  "rules": "Standard hackathon rules apply. No pre-existing code allowed.",
+  "featured": true,
+  "status": "published",
+  "competitionTags": [
+    "AI",
+    "Machine Learning",
+    "Innovation",
+    "2025"
+  ],
+  "competitionRequiredSkills": [
+    {
+      "name": "Python"
+    },
+    {
+      "name": "Machine Learning"
+    },
+    {
+      "name": "UI/UX Design"
+    },
+    {
+      "name": "Team Collaboration"
+    }
+  ]
+}
+
+### Create Competition with Team Registration
+POST {{baseUrl}}/api/competitions
+Content-Type: application/json
+Authorization: Bearer {{organizerToken}}
+
+{
+  "title": "AI Hackathon 2025",
+  "description": "Build the next generation AI application",
+  "category": "hackathon",
+  "plan_id": "ca58db41d3eddd180d28acdf257668bd",
+  "organizer_id": "org-123",
+  "start_date": "2025-03-01T09:00:00Z",
+  "end_date": "2025-03-03T18:00:00Z",
+  "registration_deadline": "2025-02-25T23:59:59Z",
+  "location": "San Francisco, CA",
+  "prize_pool_text": "$50,000 in prizes",
+  "max_participants": 200,
+  "isRegisteredAsTeam": true,
+  "maxParticipantsPerTeam": 4,
+  "level": "intermediate",
+  "image_url": "https://example.com/hackathon-image.jpg",
+  "website": "https://ai-hackathon-2025.com",
+  "rules": "Standard hackathon rules apply. No pre-existing code allowed.",
+  "featured": true,
+  "status": "published",
+  "competitionTags": [
+    "AI",
+    "Machine Learning",
+    "Innovation",
+    "2025"
+  ],
+  "competitionRequiredSkills": [
+    {
+      "name": "Python",
+      "category": "technical"
+    },
+    {
+      "name": "Machine Learning",
+      "category": "technical"
+    },
+    {
+      "name": "UI/UX Design",
+      "category": "design"
+    },
+    {
+      "name": "Team Collaboration",
+      "category": "soft"
+    }
+  ]
+}
+
+### Get All Competitions
+GET {{baseUrl}}/api/competitions
+
+### Get All Competitions with Filters
+GET {{baseUrl}}/api/competitions?category=hackathon&status=published&page=1&limit=5
+
+### Get Competition by ID
+GET {{baseUrl}}/api/competitions/eaec3450-d99e-4500-9c89-4e64d1df20b1
+
+### Get Featured Competitions
+GET {{baseUrl}}/api/competitions/featured
+
+### Get Competition Constants (Categories, Levels, Statuses)
+GET {{baseUrl}}/api/competitions/constants
+
+### Get Competitions by Category
+GET {{baseUrl}}/api/competitions/category/hackathon
+
+### Get Competitions by Status
+GET {{baseUrl}}/api/competitions/status/published
+
+### Update Competition
+PUT {{baseUrl}}/api/competitions/f52f21f7-7c06-42d8-9740-173293a7b11a
+Content-Type: application/json
+Authorization: Bearer {{organizerToken}}
+
+{
+  "title": "AI Hackathon 2025 - Updated",
+  "description": "Updated description for the hackathon",
+  "prize_pool_text": "$75,000 in prizes",
+  "featured": false,
+  "competitionTags": [
+    "AI",
+    "Updated",
+    "Hackathon",
+    "2025",
+    "Innovation"
+  ],
+  "competitionRequiredSkills": [
+    {
+      "name": "JavaScript",
+    },
+    {
+      "name": "React",
+    },
+    {
+      "name": "Node.js",
+    },
+    {
+      "name": "Project Management",
+    }
+  ]
+}
+
+### Delete Competition
+DELETE {{baseUrl}}/api/competitions/comp-123
+Authorization: Bearer {{organizerToken}}
+
+### Get Competition Participants
+GET {{baseUrl}}/api/competitions/eaec3450-d99e-4500-9c89-4e64d1df20b1/participants
+
+### Get Competition Participants with Pagination
+GET {{baseUrl}}/api/competitions/eaec3450-d99e-4500-9c89-4e64d1df20b1/participants?page=1&limit=20
+
+###############################################################################
+#  COMPETITION PARTICIPANTS ENDPOINTS
+###############################################################################
+# 🛠️ SKILLS ENDPOINTS
+###############################################################################
+
+### Create Skill
+POST {{baseUrl}}/api/skills/create
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "React.js",
+  "category": "technical"
+}
+
+### Get All Skills
+GET {{baseUrl}}/api/skills/all
+
+### Get All Skills with Pagination
+GET {{baseUrl}}/api/skills/all?page=1&limit=20
+
+### Get Skills by Category
+GET {{baseUrl}}/api/skills/category/technical
+
+### Search Skills
+GET {{baseUrl}}/api/skills/search?q=javascript
+
+### Get Skill by ID
+GET {{baseUrl}}/api/skills/507f1f77bcf86cd799439011
+
+### Update Skill
+PUT {{baseUrl}}/api/skills/507f1f77bcf86cd799439011
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "React.js (Updated)",
+  "category": "technical"
+}
+
+### Delete Skill
+DELETE {{baseUrl}}/api/skills/507f1f77bcf86cd799439011
+Authorization: Bearer {{adminToken}}
+
+###############################################################################
+# 👤 USER PROFILE ENDPOINTS (Existing)
+###############################################################################
+
+### Get Customer Profile
+GET {{baseUrl}}/api/customer/profile
+Authorization: Bearer {{token}}
+
+### Update Customer Profile
+PUT {{baseUrl}}/api/customer/profile
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "full_name": "Updated User Name",
+  "bio": "Updated bio",
+  "school": "Updated University",
+  "city": "Updated City",
+  "study_field": "Computer Science"
+}
+
+### Get Customer Profile by ID
+GET {{baseUrl}}/api/customer/user-123
+
+###############################################################################
+# 🏢 ORGANIZER PROFILE ENDPOINTS (Existing)
+###############################################################################
+
+### Get Organizer Profile
+GET {{baseUrl}}/api/organizer/profile
+Authorization: Bearer {{organizerToken}}
+
+### Update Organizer Profile
+PUT {{baseUrl}}/api/organizer/profile
+Content-Type: application/json
+Authorization: Bearer {{organizerToken}}
+
+{
+  "name": "Updated Organization Name",
+  "description": "Updated organization description",
+  "address": "123 Updated Street, City, State",
+  "phone": "+1-555-0123",
+  "website": "https://updated-org.com"
+}
+
+### Get Organizer Profile by ID
+GET {{baseUrl}}/api/organizer/org-123
+
+###############################################################################
+# 👥 TEAM ENDPOINTS (Existing)
+###############################################################################
+
+### Create Team
+POST {{baseUrl}}/api/teams
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Team Alpha",
+  "description": "An awesome team for hackathons",
+  "competition_id": "comp-123",
+  "max_members": 4
+}
+
+### Get Team by ID
+GET {{baseUrl}}/api/teams/team-123
+
+### Update Team
+PUT {{baseUrl}}/api/teams/team-123
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Team Alpha Updated",
+  "description": "Updated team description"
+}
+
+### Get Team Members
+GET {{baseUrl}}/api/teams/team-123/members
+
+### Get User Teams
+GET {{baseUrl}}/api/user/teams
+Authorization: Bearer {{token}}
+
+### Delete Team
+DELETE {{baseUrl}}/api/teams/team-123
+Authorization: Bearer {{token}}
+
+###############################################################################
+# 📩 TEAM INVITATIONS ENDPOINTS (Existing)
+###############################################################################
+
+### Create Team Invitation
+POST {{baseUrl}}/api/team-invitations
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "team_id": "team-123",
+  "invitee_id": "user-456",
+  "message": "Join our team for the hackathon!"
+}
+
+### Get Team Invitation by ID
+GET {{baseUrl}}/api/team-invitations/inv-123
+
+### Get Team Invitations
+GET {{baseUrl}}/api/teams/team-123/invitations
+Authorization: Bearer {{token}}
+
+### Get User Invitations
+GET {{baseUrl}}/api/user/invitations
+Authorization: Bearer {{token}}
+
+### Accept Invitation
+POST {{baseUrl}}/api/team-invitations/inv-123/accept
+Authorization: Bearer {{token}}
+
+### Reject Invitation
+POST {{baseUrl}}/api/team-invitations/inv-123/reject
+Authorization: Bearer {{token}}
+
+### Cancel Invitation
+POST {{baseUrl}}/api/team-invitations/inv-123/cancel
+Authorization: Bearer {{token}}
+
+###############################################################################
+# 🎖️ USER ACHIEVEMENTS ENDPOINTS (Existing)
+###############################################################################
+
+### Get User Achievements
+GET {{baseUrl}}/api/user/achievements
+Authorization: Bearer {{token}}
+
+### Add User Achievement
+POST {{baseUrl}}/api/user/achievements
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "First Place Winner",
+  "description": "Won first place in AI Hackathon 2025",
+  "date_achieved": "2025-03-03T18:00:00Z"
+}
+
+### Update User Achievement
+PUT {{baseUrl}}/api/user/achievements/ach-123
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Updated Achievement Title",
+  "description": "Updated achievement description"
+}
+
+### Delete User Achievement
+DELETE {{baseUrl}}/api/user/achievements/ach-123
+Authorization: Bearer {{token}}
+
+###############################################################################
+# 🚀 USER PROJECTS ENDPOINTS (Existing)
+###############################################################################
+
+### Get User Projects
+GET {{baseUrl}}/api/user/projects
+Authorization: Bearer {{token}}
+
+### Add User Project
+POST {{baseUrl}}/api/user/projects
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+Authorization: Bearer {{token}}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+AI Chat Application
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+A modern AI-powered chat application built with React and Node.js
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="technologies"
+
+React, Node.js, MongoDB, OpenAI API
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="github_url"
+
+https://github.com/user/ai-chat-app
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="demo_url"
+
+https://ai-chat-demo.com
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Update User Project
+PUT {{baseUrl}}/api/user/projects/proj-123
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Updated AI Chat Application",
+  "description": "Updated description for the AI chat app"
+}
+
+### Delete User Project
+DELETE {{baseUrl}}/api/user/projects/proj-123
+Authorization: Bearer {{token}}
+
+###############################################################################
+# 🎯 USER SKILLS ENDPOINTS (Existing)
+###############################################################################
+
+### Get All Available Skills
+GET {{baseUrl}}/api/skills
+
+### Get User Skills
+GET {{baseUrl}}/api/user/skills
+Authorization: Bearer {{token}}
+
+### Add User Skill
+POST {{baseUrl}}/api/user/skills
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "skill_id": 1,
+  "proficiency_level": "intermediate"
+}
+
+### Update User Skill
+PUT {{baseUrl}}/api/user/skills/user-skill-123
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "proficiency_level": "advanced"
+}
+
+### Delete User Skill
+DELETE {{baseUrl}}/api/user/skills/user-skill-123
+Authorization: Bearer {{token}}
+
+###############################################################################
+# 🔒 ROLE MANAGEMENT ENDPOINTS (Existing)
+###############################################################################
+
+### Get All Roles
+GET {{baseUrl}}/api/roles
+Authorization: Bearer {{adminToken}}
+
+### Get User Roles
+GET {{baseUrl}}/api/roles/user/user-123
+Authorization: Bearer {{organizerToken}}
+
+### Assign Role
+POST {{baseUrl}}/api/roles/assign
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "user_id": "user-123",
+  "role_id": 2
+}
+
+### Remove Role
+POST {{baseUrl}}/api/roles/remove
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "user_id": "user-123",
+  "role_id": 2
+}
+
+###############################################################################
+# 💰 PLANS ENDPOINTS
+###############################################################################
+
+### Create Plan
+POST {{baseUrl}}/api/plans
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Basic Plan",
+  "description": "A basic plan for small organizations",
+  "price_amount": 199000,
+  "currency": "VND",
+  "status": "active"
+}
+
+### Create Premium Plan
+POST {{baseUrl}}/api/plans
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Standard Plan",
+  "description": "A standard plan with advanced features",
+  "price_amount": 499000,
+  "currency": "VND",
+  "status": "active"
+}
+
+### Create Enterprise Plan
+POST {{baseUrl}}/api/plans
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Premium Plan",
+  "description": "Premium plan for large organizations",
+  "price_amount": 1999000,
+  "currency": "VND",
+  "status": "active"
+}
+
+### Get All Plans (Public)
+GET {{baseUrl}}/api/plans
+
+### Get Plans with Pagination
+GET {{baseUrl}}/api/plans?page=1&limit=5
+
+### Get Plans with Status Filter
+GET {{baseUrl}}/api/plans?status=active
+
+### Get Plans with Search
+GET {{baseUrl}}/api/plans?search=premium
+
+### Get Plans with Price Range
+GET {{baseUrl}}/api/plans?minPrice=100000&maxPrice=400000
+
+### Get Plans with Currency Filter
+GET {{baseUrl}}/api/plans?currency=VND
+
+### Get Plans with Sorting
+GET {{baseUrl}}/api/plans?sortBy=price_amount&sortOrder=asc
+
+### Get Plans with Multiple Filters
+GET {{baseUrl}}/api/plans?status=active&currency=VND&minPrice=50000&maxPrice=500000&sortBy=name&sortOrder=asc&page=1&limit=10
+
+### Get Plan by ID
+GET {{baseUrl}}/api/plans/PLAN_ID_HERE
+
+### Get Plan with Features
+GET {{baseUrl}}/api/plans/PLAN_ID_HERE/features
+
+### Get Plans by Status
+GET {{baseUrl}}/api/plans/status/active
+
+### Get Inactive Plans
+GET {{baseUrl}}/api/plans/status/inactive
+
+### Get Archived Plans
+GET {{baseUrl}}/api/plans/status/archived
+
+### Update Plan
+PUT {{baseUrl}}/api/plans/PLAN_ID_HERE
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Updated Basic Plan",
+  "description": "Updated description for basic plan",
+  "price_amount": 129000,
+  "currency": "VND"
+}
+
+### Update Plan Status
+PATCH {{baseUrl}}/api/plans/PLAN_ID_HERE/status
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "status": "inactive"
+}
+
+### Archive Plan
+PATCH {{baseUrl}}/api/plans/PLAN_ID_HERE/status
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "status": "archived"
+}
+
+### Reactivate Plan
+PATCH {{baseUrl}}/api/plans/PLAN_ID_HERE/status
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "status": "active"
+}
+
+### Delete Plan
+DELETE {{baseUrl}}/api/plans/PLAN_ID_HERE
+Authorization: Bearer {{adminToken}}
+
+###############################################################################
+# 💰 PLANS API - Error Testing
+###############################################################################
+
+### Create Plan - Missing Required Fields
+POST {{baseUrl}}/api/plans
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "description": "Missing name and price"
+}
+
+### Create Plan - Invalid Price
+POST {{baseUrl}}/api/plans
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Invalid Price Plan",
+  "price_amount": -100,
+  "currency": "VND"
+}
+
+### Create Plan - Invalid Status
+POST {{baseUrl}}/api/plans
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Invalid Status Plan",
+  "price_amount": 100000,
+  "status": "invalid_status"
+}
+
+### Create Plan - Duplicate Name
+POST {{baseUrl}}/api/plans
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Basic Plan",
+  "price_amount": 150000,
+  "currency": "VND"
+}
+
+### Get Plan - Invalid ID
+GET {{baseUrl}}/api/plans/invalid-plan-id
+
+### Update Plan - Invalid Status
+PUT {{baseUrl}}/api/plans/PLAN_ID_HERE
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "status": "invalid_status"
+}
+
+### Update Plan Status - Missing Status
+PATCH {{baseUrl}}/api/plans/PLAN_ID_HERE/status
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+}
+
+### Update Plan Status - Invalid Status
+PATCH {{baseUrl}}/api/plans/PLAN_ID_HERE/status
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "status": "invalid_status"
+}
+
+### Delete Plan - Invalid ID
+DELETE {{baseUrl}}/api/plans/invalid-plan-id
+Authorization: Bearer {{adminToken}}
+
+###############################################################################
+# 💰 PLANS API - Unauthorized Access Testing
+###############################################################################
+
+### Create Plan - No Token
+POST {{baseUrl}}/api/plans
+Content-Type: application/json
+
+{
+  "name": "Unauthorized Plan",
+  "price_amount": 100000
+}
+
+### Create Plan - Invalid Token
+POST {{baseUrl}}/api/plans
+Content-Type: application/json
+Authorization: Bearer invalid_token
+
+{
+  "name": "Unauthorized Plan",
+  "price_amount": 100000
+}
+
+### Create Plan - Non-Admin Token
+POST {{baseUrl}}/api/plans
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Unauthorized Plan",
+  "price_amount": 100000
+}
+
+### Update Plan - No Token
+PUT {{baseUrl}}/api/plans/PLAN_ID_HERE
+Content-Type: application/json
+
+{
+  "name": "Updated Plan"
+}
+
+### Delete Plan - No Token
+DELETE {{baseUrl}}/api/plans/PLAN_ID_HERE

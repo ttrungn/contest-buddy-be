@@ -1,3 +1,4 @@
+
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { createApp, initializeApp } from "./app.js";
@@ -23,3 +24,4 @@ const port = process.env.PORT || 8080;
 server.listen(port, () => {
   console.log(`🚀 Backend Nodejs is running on port: ${port}`);
 });
+
