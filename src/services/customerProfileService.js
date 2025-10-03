@@ -1,4 +1,6 @@
 import UserSocialLinks from "../models/userSocialLinks.js";
+import UserSkills from "../models/userSkills.js";
+import UserRoles from "../models/userRoles.js";
 import User from "../models/user.js";
 import cloudinaryService from "./cloudinaryService.js";
 
@@ -231,9 +233,228 @@ const getCustomerProfileById = async (userId) => {
   }
 };
 
+// Get customer profiles with filtering and pagination
+const getCustomerProfiles = async (filters = {}, options = {}) => {
+  try {
+    const { page = 1, limit = 10 } = options;
+    const skip = (page - 1) * limit;
+
+    // Build query filters
+    const query = {};
+
+    // Text search filters
+    if (filters.search) {
+      query.$or = [
+        { full_name: { $regex: filters.search, $options: "i" } },
+        { username: { $regex: filters.search, $options: "i" } },
+        { email: { $regex: filters.search, $options: "i" } },
+      ];
+    }
+
+    // Location filters
+    if (filters.city) {
+      query.city = { $regex: filters.city, $options: "i" };
+    }
+    if (filters.region) {
+      query.region = { $regex: filters.region, $options: "i" };
+    }
+    if (filters.country) {
+      query.country = { $regex: filters.country, $options: "i" };
+    }
+
+    // Education filters
+    if (filters.school) {
+      query.school = { $regex: filters.school, $options: "i" };
+    }
+    if (filters.study_field) {
+      query.study_field = { $regex: filters.study_field, $options: "i" };
+    }
+
+    // Rating filter
+    if (filters.min_rating) {
+      query.rating = { $gte: parseFloat(filters.min_rating) };
+    }
+    if (filters.max_rating) {
+      query.rating = { ...query.rating, $lte: parseFloat(filters.max_rating) };
+    }
+
+    // Verification status filter
+    if (filters.is_verified !== undefined) {
+      query.is_verified = filters.is_verified === "true";
+    }
+
+    // Date range filters
+    if (filters.join_date_from) {
+      query.join_date = { $gte: new Date(filters.join_date_from) };
+    }
+    if (filters.join_date_to) {
+      query.join_date = {
+        ...query.join_date,
+        $lte: new Date(filters.join_date_to),
+      };
+    }
+
+    // Skill-based filtering
+    let userIds = [];
+    if (filters.skill_name || filters.skill_category || filters.skill_level) {
+      const skillQuery = {};
+      if (filters.skill_name) {
+        skillQuery.skill_name = { $regex: filters.skill_name, $options: "i" };
+      }
+      if (filters.skill_category) {
+        skillQuery.category = filters.skill_category;
+      }
+      if (filters.skill_level) {
+        skillQuery.level = filters.skill_level;
+      }
+
+      const usersWithSkills = await UserSkills.find(skillQuery, { user_id: 1 });
+      userIds = usersWithSkills.map((skill) => skill.user_id);
+
+      if (userIds.length === 0) {
+        // No users found with matching skills
+        return {
+          success: true,
+          data: [],
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: 0,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPreviousPage: false,
+          },
+        };
+      }
+
+      query.id = { $in: userIds };
+    }
+
+    // Filter by role_id = 3 (customer role)
+    const usersWithCustomerRole = await UserRoles.find(
+      { role_id: 3 },
+      { user_id: 1 }
+    );
+    const customerUserIds = usersWithCustomerRole.map(
+      (userRole) => userRole.user_id
+    );
+
+    if (customerUserIds.length === 0) {
+      // No users found with customer role
+      return {
+        success: true,
+        data: [],
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+      };
+    }
+
+    // Combine skill-based and role-based filters
+    if (userIds.length > 0) {
+      // If skill filtering was applied, find intersection of skill users and customer role users
+      const intersectedUserIds = userIds.filter((id) =>
+        customerUserIds.includes(id)
+      );
+      query.id = { $in: intersectedUserIds };
+    } else {
+      // If no skill filtering, just use customer role users
+      query.id = { $in: customerUserIds };
+    }
+
+    // Execute query with pagination
+    const users = await User.find(query, {
+      password: 0, // Exclude sensitive fields
+      verification_token: 0,
+      verification_token_expires: 0,
+      reset_password_token: 0,
+      reset_password_token_expires: 0,
+      refresh_token: 0,
+    })
+      .sort({ join_date: -1 }) // Sort by newest first
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await User.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
+
+    // Populate user skills and social media for each user
+    const profilesData = await Promise.all(
+      users.map(async (user) => {
+        // Get user skills
+        const userSkills = await UserSkills.find({ user_id: user.id });
+
+        // Get social links
+        const socialLinks = await UserSocialLinks.findOne({ user_id: user.id });
+
+        return {
+          userId: user.id,
+          username: user.username,
+          full_name: user.full_name,
+          email: user.email,
+          avatar_url: user.avatar_url,
+          bio: user.bio,
+          school: user.school,
+          city: user.city,
+          region: user.region,
+          country: user.country,
+          study_field: user.study_field,
+          join_date: user.join_date,
+          rating: user.rating,
+          is_verified: user.is_verified,
+          skills: userSkills.map((skill) => ({
+            id: skill.id,
+            skill_name: skill.skill_name,
+            category: skill.category,
+            level: skill.level,
+            experience_years: skill.experience_years,
+          })),
+          social_links: socialLinks
+            ? {
+                github: socialLinks.github || "",
+                linkedin: socialLinks.linkedin || "",
+                personal: socialLinks.personal || "",
+              }
+            : {
+                github: "",
+                linkedin: "",
+                personal: "",
+              },
+        };
+      })
+    );
+
+    return {
+      success: true,
+      data: profilesData,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    };
+  } catch (error) {
+    console.error("Get customer profiles error:", error);
+    return {
+      success: false,
+      message: "Failed to get customer profiles",
+      error: error.message,
+    };
+  }
+};
+
 export {
   getCustomerProfileByUserId,
   updateCustomerProfile,
   updateCustomerAvatar,
   getCustomerProfileById,
+  getCustomerProfiles,
 };

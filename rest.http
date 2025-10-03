@@ -308,6 +308,42 @@ Authorization: Bearer {{token}}
 ### Get Customer Profile by ID
 GET {{baseUrl}}/api/customer/user-123
 
+### Get All Customer Profiles (No Filter)
+GET {{baseUrl}}/api/customers
+
+### Get Customer Profiles with Basic Filters
+GET {{baseUrl}}/api/customers?page=1&limit=10&search=john
+
+### Get Customer Profiles with Location Filters
+GET {{baseUrl}}/api/customers?city=New York&country=USA&page=1&limit=20
+
+### Get Customer Profiles with Education Filters
+GET {{baseUrl}}/api/customers?school=MIT&study_field=Computer Science
+
+### Get Customer Profiles with Rating Filter
+GET {{baseUrl}}/api/customers?min_rating=3.0&max_rating=5.0
+
+### Get Verified Customer Profiles
+GET {{baseUrl}}/api/customers?is_verified=true
+
+### Get Customer Profiles with Date Range
+GET {{baseUrl}}/api/customers?join_date_from=2024-01-01&join_date_to=2024-12-31
+
+### Get Customer Profiles by Skill Name
+GET {{baseUrl}}/api/customers?skill_name=JavaScript
+
+### Get Customer Profiles by Skill Category
+GET {{baseUrl}}/api/customers?skill_category=technical
+
+### Get Customer Profiles by Skill Level
+GET {{baseUrl}}/api/customers?skill_level=advanced
+
+### Get Customer Profiles with Skill Combination
+GET {{baseUrl}}/api/customers?skill_name=React&skill_level=expert
+
+### Get Customer Profiles with Multiple Filters
+GET {{baseUrl}}/api/customers?search=developer&city=San Francisco&min_rating=4.0&is_verified=true&page=1&limit=5
+
 ###############################################################################
 # 🏢 ORGANIZER PROFILE ENDPOINTS (Existing)
 ###############################################################################

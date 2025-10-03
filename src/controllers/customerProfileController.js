@@ -3,6 +3,7 @@ import {
   updateCustomerProfile,
   updateCustomerAvatar,
   getCustomerProfileById,
+  getCustomerProfiles,
 } from "../services/customerProfileService.js";
 
 // Get customer profile
@@ -117,9 +118,69 @@ const handleGetCustomerProfileById = async (req, res) => {
   }
 };
 
+// Get customer profiles with filtering
+const handleGetCustomerProfiles = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 12,
+      search,
+      city,
+      region,
+      country,
+      school,
+      study_field,
+      min_rating,
+      max_rating,
+      is_verified,
+      join_date_from,
+      join_date_to,
+      skill_name,
+      skill_level,
+    } = req.query;
+
+    // Build filters object
+    const filters = {};
+    if (search) filters.search = search;
+    if (city) filters.city = city;
+    if (region) filters.region = region;
+    if (country) filters.country = country;
+    if (school) filters.school = school;
+    if (study_field) filters.study_field = study_field;
+    if (min_rating) filters.min_rating = min_rating;
+    if (max_rating) filters.max_rating = max_rating;
+    if (is_verified !== undefined) filters.is_verified = is_verified;
+    if (join_date_from) filters.join_date_from = join_date_from;
+    if (join_date_to) filters.join_date_to = join_date_to;
+    if (skill_name) filters.skill_name = skill_name;
+    if (skill_level) filters.skill_level = skill_level;
+
+    // Get customer profiles
+    const result = await getCustomerProfiles(filters, { page, limit });
+
+    if (result.success) {
+      return res.status(200).json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination,
+      });
+    } else {
+      return res.status(400).json(result);
+    }
+  } catch (error) {
+    console.error("Get customer profiles controller error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
 export {
   handleGetCustomerProfile,
   handleUpdateCustomerProfile,
   handleUpdateCustomerAvatar,
   handleGetCustomerProfileById,
+  handleGetCustomerProfiles,
 };

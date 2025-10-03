@@ -31,6 +31,7 @@ import {
   handleUpdateCustomerProfile,
   handleUpdateCustomerAvatar,
   handleGetCustomerProfileById,
+  handleGetCustomerProfiles,
 } from "../controllers/customerProfileController.js";
 import {
   handleGetUserSkills,
@@ -195,6 +196,7 @@ let initWebRoutes = (app) => {
     handleUpdateCustomerAvatar
   );
   router.get("/api/customer/:userId", handleGetCustomerProfileById);
+  router.get("/api/customers", handleGetCustomerProfiles);
 
   // User skills routes
   router.get("/api/skills", handleGetAllSkills);
@@ -377,7 +379,10 @@ let initWebRoutes = (app) => {
   );
   router.get("/api/competitions/status/:status", handleGetCompetitionsByStatus);
   router.get("/api/competitions/:competitionId", handleGetCompetitionById);
-  router.get("/api/competitions/:competitionId/participants", handleGetCompetitionParticipants);
+  router.get(
+    "/api/competitions/:competitionId/participants",
+    handleGetCompetitionParticipants
+  );
   router.put(
     "/api/competitions/:competitionId",
     verifyToken,
