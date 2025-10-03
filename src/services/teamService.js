@@ -145,8 +145,23 @@ export const getTeamMembers = async (teamId) => {
     }
 
     // Get team members
-    const members = await TeamMembers.find({ team_id: teamId });
-    return members;
+    const members = await TeamMembers.find({ team_id: teamId }).populate({
+      path: "user_id",
+      model: "User",
+      localField: "user_id",
+      foreignField: "id",
+      justOne: true,
+    });
+
+    // Transform the response to use 'user' instead of 'user_id'
+    const transformedMembers = members.map((member) => {
+      const memberObj = member.toObject();
+      memberObj.user = memberObj.user_id;
+      delete memberObj.user_id;
+      return memberObj;
+    });
+
+    return transformedMembers;
   } catch (error) {
     throw new Error(`Failed to get team members: ${error.message}`);
   }

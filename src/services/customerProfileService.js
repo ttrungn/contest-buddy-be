@@ -2,6 +2,8 @@ import UserSocialLinks from "../models/userSocialLinks.js";
 import UserSkills from "../models/userSkills.js";
 import UserRoles from "../models/userRoles.js";
 import User from "../models/user.js";
+import Achievements from "../models/achievements.js";
+import Projects from "../models/projects.js";
 import cloudinaryService from "./cloudinaryService.js";
 
 // Get customer profile by user ID
@@ -189,14 +191,28 @@ const getCustomerProfileById = async (userId) => {
       };
     }
 
-    // Find social links
+    // Get user skills
+    const userSkills = await UserSkills.find({ user_id: userId });
+
+    // Get user achievements
+    const userAchievements = await Achievements.find({ user_id: userId }).sort({
+      achieved_at: -1,
+    });
+
+    // Get user projects
+    const userProjects = await Projects.find({ user_id: userId }).sort({
+      created_at: -1,
+    });
+
+    // Get social links
     const socialLinks = await UserSocialLinks.findOne({ user_id: userId });
 
-    // Prepare public profile data
+    // Prepare public profile data with populated skills and social links
     const profileData = {
       userId: user.id,
       username: user.username,
       full_name: user.full_name,
+      email: user.email,
       avatar_url: user.avatar_url,
       bio: user.bio,
       school: user.school,
@@ -206,6 +222,34 @@ const getCustomerProfileById = async (userId) => {
       study_field: user.study_field,
       join_date: user.join_date,
       rating: user.rating,
+      is_verified: user.is_verified,
+      skills: userSkills.map((skill) => ({
+        id: skill.id,
+        skill_name: skill.skill_name,
+        category: skill.category,
+        level: skill.level,
+        experience_years: skill.experience_years,
+      })),
+      achievements: userAchievements.map((achievement) => ({
+        id: achievement.id,
+        competition_name: achievement.competition_name,
+        position: achievement.position,
+        award: achievement.award,
+        achieved_at: achievement.achieved_at,
+        category: achievement.category,
+        description: achievement.description,
+      })),
+      projects: userProjects.map((project) => ({
+        id: project.id,
+        title: project.title,
+        description: project.description,
+        category: project.category,
+        tags: project.tags,
+        image_url: project.image_url,
+        project_url: project.project_url,
+        github_url: project.github_url,
+        created_at: project.created_at,
+      })),
       social_links: socialLinks
         ? {
             github: socialLinks.github || "",
@@ -389,6 +433,11 @@ const getCustomerProfiles = async (filters = {}, options = {}) => {
         // Get user skills
         const userSkills = await UserSkills.find({ user_id: user.id });
 
+        // Get user achievements
+        const userAchievements = await Achievements.find({
+          user_id: user.id,
+        }).sort({ achieved_at: -1 });
+
         // Get social links
         const socialLinks = await UserSocialLinks.findOne({ user_id: user.id });
 
@@ -413,6 +462,12 @@ const getCustomerProfiles = async (filters = {}, options = {}) => {
             category: skill.category,
             level: skill.level,
             experience_years: skill.experience_years,
+          })),
+          achievements: userAchievements.map((achievement) => ({
+            id: achievement.id,
+            competition_name: achievement.competition_name,
+            position: achievement.position,
+            award: achievement.award,
           })),
           social_links: socialLinks
             ? {

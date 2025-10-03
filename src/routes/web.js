@@ -112,6 +112,11 @@ import {
   handleGetPlanWithFeatures,
   handleUpdatePlanStatus,
 } from "../controllers/plansController.js";
+import {
+  handleRegisterForCompetition,
+  handleCheckParticipantRegistration,
+  handleGetUserParticipatedCompetitions,
+} from "../controllers/competitionRegistrationController.js";
 
 let router = express.Router();
 
@@ -382,6 +387,28 @@ let initWebRoutes = (app) => {
   router.get(
     "/api/competitions/:competitionId/participants",
     handleGetCompetitionParticipants
+  );
+  router.post(
+    "/api/competitions/:competitionId/register",
+    verifyToken,
+    isVerified,
+    handleRegisterForCompetition
+  );
+  router.head(
+    "/api/competitions/:competitionId/participants/check",
+    verifyToken,
+    handleCheckParticipantRegistration
+  );
+  router.get(
+    "/api/competitions/:competitionId/participants/check",
+    verifyToken,
+    handleCheckParticipantRegistration
+  );
+  router.get(
+    "/api/user/participated-competitions",
+    verifyToken,
+    isVerified,
+    handleGetUserParticipatedCompetitions
   );
   router.put(
     "/api/competitions/:competitionId",

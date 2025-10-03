@@ -35,15 +35,19 @@ const CompetitionParticipantsSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  management_id: {
+  competition_id: {
     type: String,
     required: true,
-    ref: "competition_management",
+    ref: "competitions",
   },
   user_id: {
     type: String,
     required: true,
     ref: "users",
+  },
+  team_id: {
+    type: String,
+    ref: "teams",
   },
   registration_date: {
     type: Date,
