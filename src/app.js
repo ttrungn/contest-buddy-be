@@ -11,11 +11,14 @@ dotenv.config();
 
 export const createApp = () => {
   const app = express();
-  const allowedOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    "http://localhost:5173",
+  ].filter(Boolean);
 
   app.use(
     cors({
-      origin: allowedOrigin,
+      origin: allowedOrigins,
       credentials: true,
     })
   );
@@ -26,7 +29,7 @@ export const createApp = () => {
   viewEngine(app);
   initWebRoutes(app);
 
-  return { app, allowedOrigin };
+  return { app, allowedOrigins };
 };
 
 export const initializeApp = async () => {

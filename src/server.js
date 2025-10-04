@@ -1,10 +1,9 @@
-
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { createApp, initializeApp } from "./app.js";
 import registerChatHandlers from "./sockets/chatSocket.js";
 
-const { app, allowedOrigin } = createApp();
+const { app, allowedOrigins } = createApp();
 
 // Kết nối MongoDB và khởi tạo dữ liệu cần thiết
 initializeApp();
@@ -12,7 +11,7 @@ initializeApp();
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: allowedOrigin,
+    origin: allowedOrigins,
     credentials: true,
   },
 });
@@ -24,4 +23,3 @@ const port = process.env.PORT || 8080;
 server.listen(port, () => {
   console.log(`🚀 Backend Nodejs is running on port: ${port}`);
 });
-

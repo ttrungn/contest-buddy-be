@@ -1,0 +1,319 @@
+### ===========================
+### TEAM MANAGEMENT API TESTS
+### ===========================
+### Base URL: http://localhost:8080
+### Make sure to replace tokens and IDs with actual values
+
+@baseUrl = http://localhost:8080
+@authToken = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNiYmE0NThkNjFlODA4NDMxODAyYmQxYjRkNWQ0NDJmIiwiaWF0IjoxNzU5NTE3NTEyLCJleHAiOjE3NTk2MDM5MTJ9.xrAmwIqT-lTzJ1L2Yhk4XpqfJBSfDxIkI0rxpY6xQxM
+@teamId = bfd49053-821f-41a7-8b10-96dc9472faf8
+@userId = user-123-456-789
+@memberId = member-123-456-789
+@invitationId = 45033dcc-b467-4bac-9081-6dc013fa2794
+
+###
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "lethibichngoc@example.com",
+  "password": "password123"
+}
+
+###
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### ===========================
+### TEAM CRUD OPERATIONS
+### ===========================
+
+### 1. CREATE TEAM
+POST {{baseUrl}}/api/teams
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Team Alpha",
+  "description": "A competitive programming team focused on algorithmic challenges and hackathons",
+  "max_members": 5,
+  "status": "active"
+}
+
+### 2. GET TEAM BY ID
+GET {{baseUrl}}/api/teams/{{teamId}}
+Content-Type: application/json
+
+### 3. UPDATE TEAM
+PUT {{baseUrl}}/api/teams/{{teamId}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Team Alpha Pro",
+  "description": "An elite competitive programming team specializing in advanced algorithms and data structures",
+  "max_members": 6,
+  "status": "active"
+}
+
+### 4. DELETE TEAM
+DELETE {{baseUrl}}/api/teams/{{teamId}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+### ===========================
+### TEAM MEMBER MANAGEMENT
+### ===========================
+
+### 5. GET TEAM MEMBERS
+GET {{baseUrl}}/api/teams/{{teamId}}/members
+Content-Type: application/json
+
+### 6. REMOVE TEAM MEMBER
+DELETE {{baseUrl}}/api/teams/{{teamId}}/members/{{memberId}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+### 7. CHANGE TEAM MEMBER ROLE
+PUT {{baseUrl}}/api/teams/{{teamId}}/members/{{memberId}}/role
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "role": "leader"
+}
+
+### ===========================
+### USER TEAMS
+### ===========================
+
+### 8. GET CURRENT USER'S TEAMS
+GET {{baseUrl}}/api/user/teams
+Authorization: {{authToken}}
+Content-Type: application/json
+
+### 9. GET SPECIFIC USER'S TEAMS
+GET {{baseUrl}}/api/user/{{userId}}/teams
+Content-Type: application/json
+
+### ===========================
+### TEAM INVITATIONS - CREATE & MANAGE
+### ===========================
+
+### 10. CREATE TEAM INVITATION
+POST {{baseUrl}}/api/team-invitations
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "teamId": "{{teamId}}",
+  "inviteeId": "4cb10fc608e6b981e3b02c547600ae69",
+  "message": "Hi! We'd love to have you join our team for the upcoming hackathon. Your skills in frontend development would be a great addition to our team!"
+}
+
+### 11. GET INVITATION BY ID
+GET {{baseUrl}}/api/team-invitations/{{invitationId}}
+Content-Type: application/json
+
+### 12. GET TEAM INVITATIONS (for a specific team)
+GET {{baseUrl}}/api/teams/{{teamId}}/invitations
+Authorization: {{authToken}}
+Content-Type: application/json
+
+### 13. GET USER'S RECEIVED INVITATIONS
+GET {{baseUrl}}/api/user/invitations
+Authorization: {{authToken}}
+Content-Type: application/json
+
+### ===========================
+### TEAM INVITATIONS - RESPONSES
+### ===========================
+
+### 14. ACCEPT TEAM INVITATION
+POST {{baseUrl}}/api/team-invitations/{{invitationId}}/accept
+Authorization: {{authToken}}
+Content-Type: application/json
+
+### 15. REJECT TEAM INVITATION
+POST {{baseUrl}}/api/team-invitations/{{invitationId}}/reject
+Authorization: {{authToken}}
+Content-Type: application/json
+
+### 16. CANCEL TEAM INVITATION (by inviter)
+POST {{baseUrl}}/api/team-invitations/{{invitationId}}/cancel
+Authorization: {{authToken}}
+Content-Type: application/json
+
+### ===========================
+### ADVANCED TEAM SCENARIOS
+### ===========================
+
+### 17. CREATE TEAM FOR SPECIFIC COMPETITION
+POST {{baseUrl}}/api/teams
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "CodeWarriors",
+  "description": "Specialized team for competitive programming contests",
+  "competition_id": "hackathon-2025-q4",
+  "max_members": 4,
+  "status": "active"
+}
+
+### 18. CREATE GENERAL PURPOSE TEAM
+POST {{baseUrl}}/api/teams
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Innovation Squad",
+  "description": "Multi-disciplinary team for various projects and competitions",
+  "max_members": 8,
+  "status": "active"
+}
+
+### 19. INVITE MULTIPLE MEMBERS (send multiple invitations)
+POST {{baseUrl}}/api/team-invitations
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "team_id": "{{teamId}}",
+  "invitee_id": "frontend-dev-user-id",
+  "message": "Join our team as our frontend specialist! We're participating in the UI/UX hackathon next month."
+}
+
+###
+POST {{baseUrl}}/api/team-invitations
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "team_id": "{{teamId}}",
+  "invitee_id": "backend-dev-user-id",
+  "message": "We need a backend expert for our team! Your experience with Node.js and databases would be perfect."
+}
+
+###
+POST {{baseUrl}}/api/team-invitations
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "team_id": "{{teamId}}",
+  "invitee_id": "designer-user-id",
+  "message": "Looking for a creative designer to complete our team! Your portfolio looks amazing."
+}
+
+### ===========================
+### TEAM STATUS MANAGEMENT
+### ===========================
+
+### 20. SET TEAM TO INACTIVE
+PUT {{baseUrl}}/api/teams/{{teamId}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "status": "inactive"
+}
+
+### 21. MARK TEAM AS COMPLETED
+PUT {{baseUrl}}/api/teams/{{teamId}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "status": "completed"
+}
+
+### ===========================
+### ERROR TESTING SCENARIOS
+### ===========================
+
+### 22. CREATE TEAM WITH MISSING REQUIRED FIELDS
+POST {{baseUrl}}/api/teams
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Incomplete Team"
+}
+
+### 23. INVITE TO NON-EXISTENT TEAM
+POST {{baseUrl}}/api/team-invitations
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "team_id": "non-existent-team-id",
+  "invitee_id": "{{userId}}",
+  "message": "This should fail"
+}
+
+### 24. ACCESS TEAM WITHOUT AUTHORIZATION
+GET {{baseUrl}}/api/user/teams
+Content-Type: application/json
+
+### 25. ACCEPT ALREADY PROCESSED INVITATION
+POST {{baseUrl}}/api/team-invitations/{{invitationId}}/accept
+Authorization: {{authToken}}
+Content-Type: application/json
+
+### ===========================
+### TEAM WORKFLOW EXAMPLE
+### ===========================
+### Complete workflow: Create team → Invite members → Manage team
+
+### Step 1: Create a new team
+POST {{baseUrl}}/api/teams
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Workflow Demo Team",
+  "description": "Demo team for testing complete workflow",
+  "competition_id": "demo-competition-2025",
+  "max_members": 3,
+  "status": "active"
+}
+
+### Step 2: Check team details (use team ID from response above)
+# GET {{baseUrl}}/api/teams/TEAM_ID_FROM_STEP_1
+
+### Step 3: Invite a member (use team ID from step 1)
+# POST {{baseUrl}}/api/team-invitations
+# Authorization: {{authToken}}
+# Content-Type: application/json
+# 
+# {
+#   "team_id": "TEAM_ID_FROM_STEP_1",
+#   "invitee_id": "target-user-id",
+#   "message": "Welcome to our demo team!"
+# }
+
+### Step 4: Check team invitations
+# GET {{baseUrl}}/api/teams/TEAM_ID_FROM_STEP_1/invitations
+# Authorization: {{authToken}}
+
+### Step 5: Check team members after invitation acceptance
+# GET {{baseUrl}}/api/teams/TEAM_ID_FROM_STEP_1/members
+
+### ===========================
+### NOTES FOR TESTING
+### ===========================
+# 1. Replace {{authToken}} with actual JWT token from login
+# 2. Replace {{teamId}}, {{userId}}, etc. with real IDs
+# 3. Make sure user has appropriate permissions
+# 4. Test with different user roles (leader vs member)
+# 5. For team creation, user becomes the leader automatically
+# 6. Team leader can invite/remove members and update team
+# 7. Members can leave team but cannot invite others
+# 8. Only pending invitations can be accepted/rejected
+# 9. Only the inviter or team leader can cancel invitations

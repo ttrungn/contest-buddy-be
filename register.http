@@ -1,0 +1,260 @@
+### ===========================
+### COMPETITION REGISTRATION API TESTS
+### ===========================
+### Base URL: http://localhost:8080
+### Make sure to replace tokens and IDs with actual values
+
+@baseUrl = http://localhost:8080
+@authToken = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNiYmE0NThkNjFlODA4NDMxODAyYmQxYjRkNWQ0NDJmIiwiaWF0IjoxNzU5NTIxMTg2LCJleHAiOjE3NTk2MDc1ODZ9.bkHaK1PjJWkMt_Q3XzQs3INr3qCKgb-7C8Hoo_lZGik
+@competitionId = comp-123-456-789
+@teamId = team-123-456-789
+@userId = user-123-456-789
+
+### ===========================
+### LOGIN (Get Auth Token First)
+### ===========================
+
+### LOGIN USER
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### ===========================
+### INDIVIDUAL REGISTRATION
+### ===========================
+
+### 1. REGISTER CURRENT AUTHENTICATED USER FOR COMPETITION
+POST {{baseUrl}}/api/competitions/{{competitionId}}/register
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+}
+
+### 2. REGISTER AUTHENTICATED USER (empty body is also valid)
+POST {{baseUrl}}/api/competitions/{{competitionId}}/register
+Authorization: {{authToken}}
+Content-Type: application/json
+
+### ===========================
+### TEAM REGISTRATION
+### ===========================
+
+### 3. REGISTER TEAM FOR COMPETITION
+POST {{baseUrl}}/api/competitions/{{competitionId}}/register
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "teamId": "{{teamId}}"
+}
+
+### 4. REGISTER SPECIFIC TEAM
+POST {{baseUrl}}/api/competitions/{{competitionId}}/register
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "teamId": "bfd49053-821f-41a7-8b10-96dc9472faf8"
+}
+
+### ===========================
+### COMPETITION MANAGEMENT
+### ===========================
+
+### 5. GET COMPETITION DETAILS (to verify competition exists)
+GET {{baseUrl}}/api/competitions/{{competitionId}}
+Content-Type: application/json
+
+### 6. GET COMPETITION PARTICIPANTS (after registration)
+GET {{baseUrl}}/api/competitions/{{competitionId}}/participants
+Content-Type: application/json
+
+### 7. GET ALL COMPETITIONS (to find competition IDs)
+GET {{baseUrl}}/api/competitions
+Content-Type: application/json
+
+### ===========================
+### TEAM MANAGEMENT (for team registration)
+### ===========================
+
+### 8. GET USER'S TEAMS (to find team IDs)
+GET {{baseUrl}}/api/user/teams
+Authorization: {{authToken}}
+Content-Type: application/json
+
+### 9. GET TEAM DETAILS (to verify team exists)
+GET {{baseUrl}}/api/teams/{{teamId}}
+Content-Type: application/json
+
+### 10. GET TEAM MEMBERS (to see who will be registered)
+GET {{baseUrl}}/api/teams/{{teamId}}/members
+Content-Type: application/json
+
+### ===========================
+### PARTICIPANT REGISTRATION CHECK
+### ===========================
+
+### 11. CHECK IF CURRENT USER IS REGISTERED (HEAD request)
+HEAD {{baseUrl}}/api/competitions/{{competitionId}}/participants/check
+Authorization: {{authToken}}
+Content-Type: application/json
+
+### 12. CHECK IF CURRENT USER IS REGISTERED (GET request)
+GET {{baseUrl}}/api/competitions/{{competitionId}}/participants/check
+Authorization: {{authToken}}
+Content-Type: application/json
+
+### 13. CHECK WITHOUT AUTHENTICATION (should fail)
+GET {{baseUrl}}/api/competitions/{{competitionId}}/participants/check
+Content-Type: application/json
+
+### ===========================
+### USER PARTICIPATED COMPETITIONS
+### ===========================
+
+### 14. GET ALL COMPETITIONS USER PARTICIPATED IN
+GET {{baseUrl}}/api/user/participated-competitions
+Authorization: {{authToken}}
+Content-Type: application/json
+
+### 15. GET PARTICIPATED COMPETITIONS WITHOUT AUTH (should fail)
+GET {{baseUrl}}/api/user/participated-competitions
+Content-Type: application/json
+
+### ===========================
+### ERROR TESTING SCENARIOS
+### ===========================
+
+### 16. CHECK REGISTRATION WITHOUT AUTHENTICATION (should fail)
+GET {{baseUrl}}/api/competitions/{{competitionId}}/participants/check
+Content-Type: application/json
+
+### 17. REGISTER WITHOUT AUTHENTICATION (should fail)
+POST {{baseUrl}}/api/competitions/{{competitionId}}/register
+Content-Type: application/json
+
+{
+}
+
+### 18. REGISTER FOR NON-EXISTENT COMPETITION (should fail)
+POST {{baseUrl}}/api/competitions/non-existent-competition-id/register
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+}
+
+### 19. REGISTER NON-EXISTENT TEAM (should fail)
+POST {{baseUrl}}/api/competitions/{{competitionId}}/register
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "teamId": "non-existent-team-id"
+}
+
+### 20. REGISTER SAME USER TWICE (should fail - duplicate registration)
+POST {{baseUrl}}/api/competitions/{{competitionId}}/register
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+}
+
+### ===========================
+### WORKFLOW TESTING
+### ===========================
+
+### WORKFLOW 1: Individual Registration Process
+### Step 1: Login and get token
+# POST {{baseUrl}}/api/auth/login
+
+### Step 2: Check available competitions
+# GET {{baseUrl}}/api/competitions
+
+### Step 3: Register for competition
+# POST {{baseUrl}}/api/competitions/COMPETITION_ID/register
+# {
+#   "userId": "YOUR_USER_ID"
+# }
+
+### Step 4: Verify registration
+# GET {{baseUrl}}/api/competitions/COMPETITION_ID/participants
+
+### WORKFLOW 2: Team Registration Process
+### Step 1: Login and get token
+# POST {{baseUrl}}/api/auth/login
+
+### Step 2: Check user's teams
+# GET {{baseUrl}}/api/user/teams
+
+### Step 3: Register team for competition
+# POST {{baseUrl}}/api/competitions/COMPETITION_ID/register
+# {
+#   "teamId": "YOUR_TEAM_ID"
+# }
+
+### Step 4: Verify all team members are registered
+# GET {{baseUrl}}/api/competitions/COMPETITION_ID/participants
+
+### ===========================
+### EXPECTED RESPONSES
+### ===========================
+
+### SUCCESSFUL INDIVIDUAL REGISTRATION:
+# {
+#   "success": true,
+#   "message": "Successfully registered for competition",
+#   "data": {
+#     "participantId": "uuid-here",
+#     "userId": "user-456",
+#     "teamId": null,
+#     "registrationDate": "2025-10-04T...",
+#     "status": "registered"
+#   }
+# }
+
+### SUCCESSFUL TEAM REGISTRATION:
+# {
+#   "success": true,
+#   "message": "Successfully registered 3 team members for competition",
+#   "data": {
+#     "teamId": "team-789",
+#     "teamName": "Team Alpha",
+#     "registeredMembers": 3,
+#     "memberDetails": [
+#       {
+#         "participantId": "uuid-1",
+#         "userId": "member-1-id",
+#         "registrationDate": "2025-10-04T...",
+#         "status": "registered"
+#       },
+#       // ... more members
+#     ]
+#   }
+# }
+
+### ERROR RESPONSE:
+# {
+#   "success": false,
+#   "message": "User is already registered for this competition"
+# }
+
+### ===========================
+### TESTING NOTES
+### ===========================
+# 1. Replace {{authToken}} with actual JWT token from login response
+# 2. Replace {{competitionId}} with actual competition ID
+# 3. Replace {{teamId}} with actual team ID from your teams
+# 4. Replace {{userId}} with actual user ID
+# 5. Individual registration: Only userId should be provided
+# 6. Team registration: Only teamId should be provided
+# 7. Team registration registers ALL active team members automatically
+# 8. Duplicate registrations will be rejected
+# 9. All team members must not be already registered for the competition
+# 10. User must be authenticated and verified to register
