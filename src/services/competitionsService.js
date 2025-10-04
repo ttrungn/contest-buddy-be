@@ -454,14 +454,33 @@ export const getFeaturedCompetitions = async (options = {}) => {
   }
 };
 
-// Get competitions by organizer
-export const getCompetitionsByOrganizer = async (organizerId, options = {}) => {
+// Get competitions by user ID (organizer competitions)
+export const getCompetitionsByUserId = async (userId, options = {}) => {
   try {
-    return await getAllCompetitions({ organizer_id: organizerId }, options);
+    // Find the organizer record for this user
+    if (!db.Organizers) {
+      throw new Error("Organizers model not available");
+    }
+
+    const organizer = await db.Organizers.findOne({ owner_user_id: userId });
+    if (!organizer) {
+      // User is not an organizer, return empty result
+      return {
+        data: [],
+        pagination: {
+          page: parseInt(options.page || 1),
+          limit: parseInt(options.limit || 10),
+          total: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+      };
+    }
+
+    return await getAllCompetitions({ organizer_id: organizer.id }, options);
   } catch (error) {
-    throw new Error(
-      `Failed to get competitions by organizer: ${error.message}`
-    );
+    throw new Error(`Failed to get competitions by user: ${error.message}`);
   }
 };
 
@@ -495,36 +514,16 @@ export const getCompetitionParticipants = async (
       throw new Error("Competition not found");
     }
 
-    // Find the competition management record for this competition
-    const managementRecord = await CompetitionManagement.findOne({
-      competition_id: competitionId,
-    });
-
-    if (!managementRecord) {
-      // If no management record exists, return empty participants list
-      return {
-        data: [],
-        pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: 0,
-          totalPages: 0,
-          hasNextPage: false,
-          hasPreviousPage: false,
-        },
-      };
-    }
-
-    // Get participants for this competition through the management record
+    // Get participants for this competition directly
     const participants = await CompetitionParticipants.find({
-      management_id: managementRecord.id,
+      competition_id: competitionId,
     })
       .sort({ registration_date: -1 })
       .skip(skip)
       .limit(parseInt(limit));
 
     const total = await CompetitionParticipants.countDocuments({
-      management_id: managementRecord.id,
+      competition_id: competitionId,
     });
     const totalPages = Math.ceil(total / limit);
 
@@ -537,7 +536,17 @@ export const getCompetitionParticipants = async (
         if (db.User) {
           const user = await db.User.findOne(
             { id: participant.user_id },
-            { id: 1, email: 1, full_name: 1, profile_picture: 1 }
+            {
+              id: 1,
+              email: 1,
+              full_name: 1,
+              username: 1,
+              avatar_url: 1,
+              bio: 1,
+              city: 1,
+              country: 1,
+              rating: 1,
+            }
           );
           if (user) {
             participantObj.user = user;

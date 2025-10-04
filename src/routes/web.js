@@ -11,7 +11,11 @@ import {
   handleRefreshToken,
 } from "../controllers/authController.js";
 import { verifyToken, isVerified } from "../middleware/authMiddleware.js";
-import { isAdmin, isAdminOrOrganizer } from "../middleware/roleMiddleware.js";
+import {
+  isAdmin,
+  isAdminOrOrganizer,
+  isOrganizer,
+} from "../middleware/roleMiddleware.js";
 import { handleUpload } from "../middleware/uploadMiddleware.js";
 import {
   getAllRoles,
@@ -90,6 +94,7 @@ import {
   handleGetCompetitionsByCategory,
   handleGetCompetitionsByStatus,
   handleGetFeaturedCompetitions,
+  handleGetCompetitionsByUserId,
   handleGetCompetitionParticipants,
   handleGetCompetitionConstants,
 } from "../controllers/competitionsController.js";
@@ -177,6 +182,12 @@ let initWebRoutes = (app) => {
     isAdminOrOrganizer,
     handleUpload,
     handleUpdateOrganizerAvatar
+  );
+  router.get(
+    "/api/organizer/competitions",
+    verifyToken,
+    isVerified,
+    handleGetCompetitionsByUserId
   );
   router.get("/api/organizer/:organizerId", handleGetOrganizerProfileById);
 
@@ -383,6 +394,12 @@ let initWebRoutes = (app) => {
     handleGetCompetitionsByCategory
   );
   router.get("/api/competitions/status/:status", handleGetCompetitionsByStatus);
+  router.get(
+    "/api/user/competitions",
+    verifyToken,
+    isVerified,
+    handleGetCompetitionsByUserId
+  );
   router.get("/api/competitions/:competitionId", handleGetCompetitionById);
   router.get(
     "/api/competitions/:competitionId/participants",

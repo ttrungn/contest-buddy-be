@@ -7,6 +7,7 @@ import {
   getCompetitionsByCategory,
   getCompetitionsByStatus,
   getFeaturedCompetitions,
+  getCompetitionsByUserId,
   getCompetitionParticipants,
   getCompetitionConstants,
 } from "../services/competitionsService.js";
@@ -270,6 +271,38 @@ export const handleGetFeaturedCompetitions = async (req, res) => {
     res.status(500).json({
       status: "error",
       message: error.message || "Failed to get featured competitions",
+    });
+  }
+};
+
+// Get competitions by user ID (user's competitions as organizer)
+export const handleGetCompetitionsByUserId = async (req, res) => {
+  try {
+    const userId = req.user?.id; // Get userId from authenticated user
+    const { page = 1, limit = 10 } = req.query;
+
+    if (!userId) {
+      return res.status(401).json({
+        status: "error",
+        message: "Authentication required",
+      });
+    }
+
+    const competitions = await getCompetitionsByUserId(userId, {
+      page: parseInt(page),
+      limit: parseInt(limit),
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: competitions.data,
+      pagination: competitions.pagination,
+    });
+  } catch (error) {
+    console.error("Error getting competitions by user:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message || "Failed to get competitions by user",
     });
   }
 };

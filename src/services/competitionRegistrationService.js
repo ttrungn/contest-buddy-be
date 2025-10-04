@@ -21,13 +21,6 @@ const registerForCompetition = async (competitionId, registrationData) => {
       };
     }
 
-    if (userId && teamId) {
-      return {
-        success: false,
-        message: "Không thể đăng ký với cả userId và teamId",
-      };
-    }
-
     // Verify competition exists
     const competition = await Competitions.findOne({
       id: competitionId,
@@ -36,48 +29,6 @@ const registerForCompetition = async (competitionId, registrationData) => {
       return {
         success: false,
         message: "Không tìm thấy cuộc thi",
-      };
-    }
-
-    // Individual registration
-    if (userId) {
-      // Check if user is already registered for this competition
-      const existingParticipant = await CompetitionParticipants.findOne({
-        competition_id: competitionId,
-        user_id: userId,
-      });
-
-      if (existingParticipant) {
-        return {
-          success: false,
-          message: "Người dùng đã đăng ký tham gia cuộc thi này",
-        };
-      }
-
-      // Create new participant record
-      const participant = new CompetitionParticipants({
-        id: uuidv4(),
-        competition_id: competitionId,
-        user_id: userId,
-        team_id: null,
-        registration_date: new Date(),
-        status: PARTICIPANT_STATUSES.REGISTERED,
-        payment_status: PAYMENT_STATUSES.NOT_REQUIRED,
-        submission_status: SUBMISSION_STATUSES.NOT_STARTED,
-      });
-
-      await participant.save();
-
-      return {
-        success: true,
-        message: `Đăng ký tham gia cuộc thi ${competition.name} thành công`,
-        data: {
-          participantId: participant.id,
-          userId: userId,
-          teamId: null,
-          registrationDate: participant.registration_date,
-          status: participant.status,
-        },
       };
     }
 
@@ -109,6 +60,45 @@ const registerForCompetition = async (competitionId, registrationData) => {
         return {
           success: false,
           message: `Số lượng thành viên trong nhóm (${competition.maxParticipantsPerTeam}) vượt quá giới hạn cho phép`,
+        };
+      } else if (userId) {
+        // Check if user is already registered for this competition
+        const existingParticipant = await CompetitionParticipants.findOne({
+          competition_id: competitionId,
+          user_id: userId,
+        });
+
+        if (existingParticipant) {
+          return {
+            success: false,
+            message: "Người dùng đã đăng ký tham gia cuộc thi này",
+          };
+        }
+
+        // Create new participant record
+        const participant = new CompetitionParticipants({
+          id: uuidv4(),
+          competition_id: competitionId,
+          user_id: userId,
+          team_id: null,
+          registration_date: new Date(),
+          status: PARTICIPANT_STATUSES.REGISTERED,
+          payment_status: PAYMENT_STATUSES.NOT_REQUIRED,
+          submission_status: SUBMISSION_STATUSES.NOT_STARTED,
+        });
+
+        await participant.save();
+
+        return {
+          success: true,
+          message: `Đăng ký tham gia cuộc thi ${competition.name} thành công`,
+          data: {
+            participantId: participant.id,
+            userId: userId,
+            teamId: null,
+            registrationDate: participant.registration_date,
+            status: participant.status,
+          },
         };
       }
 
