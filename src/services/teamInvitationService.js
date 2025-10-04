@@ -7,6 +7,7 @@ import TeamMembers, {
   MEMBER_STATUSES,
 } from "../models/teamMembers.js";
 import Teams from "../models/teams.js";
+import User from "../models/user.js";
 
 /**
  * Create a team invitation
@@ -142,14 +143,64 @@ export const getTeamInvitations = async (teamId, requesterId) => {
 /**
  * Get all invitations for a user
  * @param {String} userId - User ID
- * @returns {Array} Invitations
+ * @returns {Array} Invitations with inviter information
  */
 export const getUserInvitations = async (userId) => {
   try {
-    const invitations = await TeamInvitations.find({
-      invitee_id: userId,
-      status: INVITATION_STATUSES.PENDING,
-    });
+    const invitations = await TeamInvitations.aggregate([
+      {
+        $match: {
+          invitee_id: userId,
+          status: INVITATION_STATUSES.PENDING,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "inviter_id",
+          foreignField: "id",
+          as: "inviter",
+        },
+      },
+      {
+        $lookup: {
+          from: "teams",
+          localField: "team_id",
+          foreignField: "id",
+          as: "team",
+        },
+      },
+      {
+        $unwind: {
+          path: "$inviter",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $unwind: {
+          path: "$team",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          id: 1,
+          team_id: 1,
+          inviter_id: 1,
+          invitee_id: 1,
+          message: 1,
+          created_at: 1,
+          status: 1,
+          __v: 1,
+          inviter_username: "$inviter.username",
+          inviter_full_name: "$inviter.full_name",
+          inviter_avatar_url: "$inviter.avatar_url",
+          team_name: "$team.name",
+        },
+      },
+    ]);
+
     return invitations;
   } catch (error) {
     throw new Error(`Failed to get user invitations: ${error.message}`);
