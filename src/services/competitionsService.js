@@ -6,7 +6,6 @@ import Competitions, {
 import CompetitionTags from "../models/competitionTags.js";
 import CompetitionRequiredSkills from "../models/competitionRequiredSkills.js";
 import CompetitionParticipants from "../models/competitionParticipants.js";
-import CompetitionManagement from "../models/competitionManagement.js";
 import db from "../models/index.js";
 import { v4 as uuidv4 } from "uuid";
 

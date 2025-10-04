@@ -130,47 +130,147 @@ Content-Type: application/json
 Authorization: Bearer {{organizerToken}}
 
 {
-  "title": "AI Hackathon 2025",
-  "description": "Build the next generation AI application",
-  "category": "hackathon",
+  "title": "Tech Innovation Hackathon 2025",
+  "description": "Build the next big innovation in 48 hours",
+  "category": "Cuộc thi Hackathon",
   "plan_id": "ca58db41d3eddd180d28acdf257668bd",
-  "organizer_id": "org-123",
   "start_date": "2025-03-01T09:00:00Z",
   "end_date": "2025-03-03T18:00:00Z",
   "registration_deadline": "2025-02-25T23:59:59Z",
-  "location": "San Francisco, CA",
-  "prize_pool_text": "$50,000 in prizes",
+  "location": "Ho Chi Minh City, Vietnam",
+  "prize_pool_text": "1,500,000 VND",
   "max_participants": 200,
   "isRegisteredAsTeam": true,
   "maxParticipantsPerTeam": 4,
-  "level": "intermediate",
-  "image_url": "https://example.com/hackathon-image.jpg",
-  "website": "https://ai-hackathon-2025.com",
-  "rules": "Standard hackathon rules apply. No pre-existing code allowed.",
+  "level": "Trung cấp",
   "featured": true,
-  "status": "published",
-  "competitionTags": [
-    "AI",
-    "Machine Learning",
-    "Innovation",
-    "2025"
-  ],
+  "status": "Đã công bố",
+  "competitionTags": ["Innovation", "Tech", "Hackathon", "Coding"],
+  "competitionRequiredSkills": [
+    {
+      "name": "JavaScript",
+      "category": "technical"
+    },
+    {
+      "name": "React.js",
+      "category": "technical"
+    },
+    {
+      "name": "Node.js",
+      "category": "technical"
+    }
+  ]
+}
+
+### Create Data Science Competition
+POST {{baseUrl}}/api/competitions
+Content-Type: application/json
+Authorization: Bearer {{organizerToken}}
+
+{
+  "title": "Data Science Challenge 2025",
+  "description": "Analyze big data to solve real-world problems",
+  "category": "Khoa học Dữ liệu",
+  "plan_id": "ca58db41d3eddd180d28acdf257668bd",
+  "start_date": "2025-04-01T09:00:00Z",
+  "end_date": "2025-04-15T18:00:00Z",
+  "registration_deadline": "2025-03-25T23:59:59Z",
+  "location": "Ho Chi Minh City, Vietnam",
+  "prize_pool_text": "1,000,000 VND",
+  "max_participants": 150,
+  "isRegisteredAsTeam": false,
+  "level": "Nâng cao",
+  "featured": false,
+  "status": "Đang mở đăng ký",
+  "competitionTags": ["Data Science", "Analytics", "Python", "Machine Learning"],
   "competitionRequiredSkills": [
     {
       "name": "Python",
       "category": "technical"
     },
     {
-      "name": "Machine Learning",
+      "name": "Data Analysis",
       "category": "technical"
     },
     {
-      "name": "UI/UX Design",
+      "name": "SQL",
+      "category": "technical"
+    }
+  ]
+}
+
+### Create UI/UX Design Competition
+POST {{baseUrl}}/api/competitions
+Content-Type: application/json
+Authorization: Bearer {{organizerToken}}
+
+{
+  "title": "Mobile App UI Design Contest",
+  "description": "Design the perfect mobile app interface",
+  "category": "Thiết kế Giao diện & Trải nghiệm người dùng (UI/UX)",
+  "plan_id": "ca58db41d3eddd180d28acdf257668bd",
+  "start_date": "2025-05-01T09:00:00Z",
+  "end_date": "2025-05-07T18:00:00Z",
+  "registration_deadline": "2025-04-25T23:59:59Z",
+  "location": "Da Nang, Vietnam",
+  "prize_pool_text": "500,000 VND",
+  "max_participants": 100,
+  "isRegisteredAsTeam": true,
+  "maxParticipantsPerTeam": 2,
+  "level": "Người mới bắt đầu",
+  "featured": true,
+  "status": "Bản nháp",
+  "competitionTags": ["UI", "UX", "Design", "Mobile", "Figma"],
+  "competitionRequiredSkills": [
+    {
+      "name": "Figma",
       "category": "design"
     },
     {
-      "name": "Team Collaboration",
-      "category": "soft"
+      "name": "Adobe XD",
+      "category": "design"
+    },
+    {
+      "name": "User Research",
+      "category": "design"
+    }
+  ]
+}
+
+### Create Blockchain Competition
+POST {{baseUrl}}/api/competitions
+Content-Type: application/json
+Authorization: Bearer {{organizerToken}}
+
+{
+  "title": "DeFi Innovation Challenge",
+  "description": "Build the next generation DeFi application",
+  "category": "Công nghệ Blockchain",
+  "plan_id": "ca58db41d3eddd180d28acdf257668bd",
+  "start_date": "2025-06-01T09:00:00Z",
+  "end_date": "2025-06-10T18:00:00Z",
+  "registration_deadline": "2025-05-25T23:59:59Z",
+  "location": "Hanoi, Vietnam",
+  "prize_pool_text": "2,000,000 VND",
+  "max_participants": 80,
+  "isRegisteredAsTeam": true,
+  "maxParticipantsPerTeam": 5,
+  "level": "Mọi cấp độ",
+  "featured": true,
+  "status": "Đang diễn ra",
+  "competitionTags": ["Blockchain", "DeFi", "Smart Contracts", "Web3"],
+  "competitionRequiredSkills": [
+    {
+      "name": "Solidity",
+      "category": "technical"
+    },
+    {
+      "name": "Web3.js",
+      "category": "technical"
+    },
+    {
+      "name": "Smart Contract Development",
+      "category": "technical"
     }
   ]
 }
@@ -179,7 +279,16 @@ Authorization: Bearer {{organizerToken}}
 GET {{baseUrl}}/api/competitions
 
 ### Get All Competitions with Filters
-GET {{baseUrl}}/api/competitions?category=hackathon&status=published&page=1&limit=5
+GET {{baseUrl}}/api/competitions?category=Cuộc thi Hackathon&status=Đã công bố&page=1&limit=5
+
+### Get All Competitions with Multiple Filters (Vietnamese Values)
+GET {{baseUrl}}/api/competitions?category=Cuộc thi Hackathon&category=Cuộc thi Dữ liệu (Datathon)&category=Trí tuệ nhân tạo & Học máy&status=Đã công bố&status=Đang mở đăng ký&level=Trung cấp&level=Nâng cao&page=1&limit=10
+
+### Get Web Development and Mobile App Competitions
+GET {{baseUrl}}/api/competitions?category=Phát triển Web&category=Phát triển Ứng dụng Di động&status=Đã công bố
+
+### Get Beginner Level Competitions
+GET {{baseUrl}}/api/competitions?level=Người mới bắt đầu&status=Đang mở đăng ký
 
 ### Get Competition by ID
 GET {{baseUrl}}/api/competitions/eaec3450-d99e-4500-9c89-4e64d1df20b1
@@ -191,10 +300,10 @@ GET {{baseUrl}}/api/competitions/featured
 GET {{baseUrl}}/api/competitions/constants
 
 ### Get Competitions by Category
-GET {{baseUrl}}/api/competitions/category/hackathon
+GET {{baseUrl}}/api/competitions/category/Cuộc thi Hackathon
 
 ### Get Competitions by Status
-GET {{baseUrl}}/api/competitions/status/published
+GET {{baseUrl}}/api/competitions/status/Đã công bố
 
 ### Update Competition
 PUT {{baseUrl}}/api/competitions/f52f21f7-7c06-42d8-9740-173293a7b11a
@@ -841,3 +950,39 @@ Content-Type: application/json
 
 ### Delete Plan - No Token
 DELETE {{baseUrl}}/api/plans/PLAN_ID_HERE
+
+###############################################################################
+# 🎯 ADDITIONAL COMPETITION FILTERING TESTS
+###############################################################################
+
+### Filter Competitions by Multiple Categories (Design and Blockchain)
+GET {{baseUrl}}/api/competitions?category=Thiết kế Giao diện & Trải nghiệm người dùng (UI/UX),Công nghệ Blockchain
+Content-Type: application/json
+
+### Filter Competitions by Multiple Levels 
+GET {{baseUrl}}/api/competitions?level=Người mới bắt đầu,Trung cấp
+Content-Type: application/json
+
+### Filter Competitions by Multiple Statuses and Single Category
+GET {{baseUrl}}/api/competitions?status=Đang mở đăng ký,Đang diễn ra&category=Cuộc thi Hackathon
+Content-Type: application/json
+
+### Complex Filter: Multiple Categories, Levels, and Date Range
+GET {{baseUrl}}/api/competitions?category=Cuộc thi Hackathon,Khoa học Dữ liệu,Công nghệ Blockchain&level=Trung cấp,Nâng cao&start_date=2025-01-01&end_date=2025-06-30
+Content-Type: application/json
+
+### Filter by Featured and Multiple Categories
+GET {{baseUrl}}/api/competitions?featured=true&category=Thiết kế Giao diện & Trải nghiệm người dùng (UI/UX),Công nghệ Blockchain
+Content-Type: application/json
+
+### Filter by Registration Type and Status
+GET {{baseUrl}}/api/competitions?isRegisteredAsTeam=true&status=Đang mở đăng ký,Bản nháp
+Content-Type: application/json
+
+### Filter by Prize Pool and Level
+GET {{baseUrl}}/api/competitions?min_prize=500000&level=Mọi cấp độ,Nâng cao
+Content-Type: application/json
+
+### Search with Multiple Filters
+GET {{baseUrl}}/api/competitions?search=challenge&category=Cuộc thi Hackathon,Khoa học Dữ liệu&level=Người mới bắt đầu,Trung cấp&featured=true
+Content-Type: application/json

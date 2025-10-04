@@ -2,31 +2,57 @@ import mongoose from "mongoose";
 
 // Define competition categories
 export const COMPETITION_CATEGORIES = {
-  HACKATHON: "hackathon",
-  DATATHON: "datathon",
-  DESIGNATHON: "designathon",
-  BUSINESS_CASE: "business_case",
-  CODING_CONTEST: "coding_contest",
-  OTHER: "other",
+  HACKATHON: "Cuộc thi Hackathon",
+  DATATHON: "Cuộc thi Dữ liệu (Datathon)",
+  DESIGNATHON: "Cuộc thi Thiết kế (Designathon)",
+  BUSINESS_CASE: "Giải pháp Kinh doanh",
+  CODING_CONTEST: "Cuộc thi Lập trình",
+  WEB_DEVELOPMENT: "Phát triển Web",
+  MOBILE_APP: "Phát triển Ứng dụng Di động",
+  AI_ML: "Trí tuệ nhân tạo & Học máy",
+  DATA_SCIENCE: "Khoa học Dữ liệu",
+  GAME_DEVELOPMENT: "Phát triển Trò chơi",
+  CYBERSECURITY: "An ninh mạng",
+  BLOCKCHAIN: "Công nghệ Blockchain",
+  IOT: "Internet of Things (IoT)",
+  ROBOTICS: "Công nghệ Robot",
+  UI_UX_DESIGN: "Thiết kế Giao diện & Trải nghiệm người dùng (UI/UX)",
+  GRAPHIC_DESIGN: "Thiết kế Đồ họa",
+  VIDEO_EDITING: "Dựng & Biên tập Video",
+  PHOTOGRAPHY: "Nhiếp ảnh",
+  STARTUP_PITCH: "Khởi nghiệp & Gọi vốn (Startup Pitch)",
+  INNOVATION: "Đổi mới sáng tạo",
+  RESEARCH: "Nghiên cứu khoa học",
+  ACADEMIC: "Học thuật / Giáo dục",
+  OPEN_SOURCE: "Nguồn mở (Open Source)",
+  SOCIAL_IMPACT: "Tác động xã hội",
+  SUSTAINABILITY: "Phát triển bền vững",
+  FINTECH: "Công nghệ tài chính (Fintech)",
+  HEALTHTECH: "Công nghệ y tế (HealthTech)",
+  EDTECH: "Công nghệ giáo dục (EdTech)",
+  AGRITECH: "Công nghệ nông nghiệp (AgriTech)",
+  DEVOPS: "DevOps / Tự động hóa triển khai",
+  CLOUD_COMPUTING: "Điện toán đám mây (Cloud Computing)",
+  OTHER: "Khác",
 };
 
-// Define competition levels
+// Cấp độ cuộc thi
 export const COMPETITION_LEVELS = {
-  BEGINNER: "beginner",
-  INTERMEDIATE: "intermediate",
-  ADVANCED: "advanced",
-  ALL_LEVELS: "all_levels",
+  BEGINNER: "Người mới bắt đầu",
+  INTERMEDIATE: "Trung cấp",
+  ADVANCED: "Nâng cao",
+  ALL_LEVELS: "Mọi cấp độ",
 };
 
-// Define competition statuses
+// Trạng thái cuộc thi
 export const COMPETITION_STATUSES = {
-  DRAFT: "draft",
-  PUBLISHED: "published",
-  REGISTRATION_OPEN: "registration_open",
-  REGISTRATION_CLOSED: "registration_closed",
-  IN_PROGRESS: "in_progress",
-  COMPLETED: "completed",
-  CANCELLED: "cancelled",
+  DRAFT: "Bản nháp",
+  PUBLISHED: "Đã công bố",
+  REGISTRATION_OPEN: "Đang mở đăng ký",
+  REGISTRATION_CLOSED: "Đã đóng đăng ký",
+  IN_PROGRESS: "Đang diễn ra",
+  COMPLETED: "Đã hoàn thành",
+  CANCELLED: "Đã hủy",
 };
 
 const CompetitionsSchema = new mongoose.Schema({

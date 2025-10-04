@@ -89,12 +89,58 @@ export const handleGetCompetitionById = async (req, res) => {
 // Get all competitions
 export const handleGetAllCompetitions = async (req, res) => {
   try {
-    const { page = 1, limit = 10, category, status, featured } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      category,
+      status,
+      level,
+      start_date,
+      end_date,
+      featured,
+    } = req.query;
+
     const filters = {};
 
-    if (category) filters.category = category;
-    if (status) filters.status = status;
-    if (featured) filters.featured = featured === "true";
+    // Handle multiple categories
+    if (category) {
+      if (Array.isArray(category)) {
+        filters.category = { $in: category };
+      } else {
+        filters.category = category;
+      }
+    }
+
+    // Handle multiple statuses
+    if (status) {
+      if (Array.isArray(status)) {
+        filters.status = { $in: status };
+      } else {
+        filters.status = status;
+      }
+    }
+
+    // Handle multiple levels
+    if (level) {
+      if (Array.isArray(level)) {
+        filters.level = { $in: level };
+      } else {
+        filters.level = level;
+      }
+    }
+
+    // Handle date filters
+    if (start_date) {
+      filters.start_date = { $gte: new Date(start_date) };
+    }
+    if (end_date) {
+      filters.end_date = { $lte: new Date(end_date) };
+    }
+
+    // Handle featured filter
+    if (featured) {
+      filters.featured = featured === "true";
+    }
 
     const competitions = await getAllCompetitions(filters, {
       page: parseInt(page),
