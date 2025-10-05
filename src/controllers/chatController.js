@@ -19,6 +19,16 @@ const resolveStatusCode = (message) => {
   return 500;
 };
 
+const getPeerIdFromConversation = (conversation, userId) => {
+  if (!conversation) {
+    return null;
+  }
+
+  return conversation.user1_id === userId
+    ? conversation.user2_id
+    : conversation.user1_id;
+};
+
 export const handleCreateDirectConversation = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -114,6 +124,31 @@ export const handleSendMessage = async (req, res) => {
       messageType
     );
 
+    const io = req.app.get("io");
+    if (io) {
+      const payloadData = {
+        conversationId,
+        ...result,
+      };
+
+      io.to(`conversation:${conversationId}`).emit(
+        "chat:new-message",
+        payloadData
+      );
+
+      const peerIdToNotify = getPeerIdFromConversation(
+        result.conversation,
+        senderId
+      );
+
+      if (peerIdToNotify) {
+        io.to(`user:${peerIdToNotify}`).emit(
+          "chat:new-message",
+          payloadData
+        );
+      }
+    }
+
     return res.status(201).json({
       success: true,
       data: result,
@@ -138,6 +173,33 @@ export const handleMarkConversationAsRead = async (req, res) => {
       userId,
       messageId
     );
+
+    const io = req.app.get("io");
+    if (io) {
+      const eventPayload = {
+        conversationId,
+        userId,
+        messageId,
+        conversation: result.conversation,
+      };
+
+      io.to(`conversation:${conversationId}`).emit(
+        "chat:read-receipt",
+        eventPayload
+      );
+
+      const peerIdToNotify = getPeerIdFromConversation(
+        result.conversation,
+        userId
+      );
+
+      if (peerIdToNotify) {
+        io.to(`user:${peerIdToNotify}`).emit(
+          "chat:read-receipt",
+          eventPayload
+        );
+      }
+    }
 
     return res.status(200).json({
       success: true,
