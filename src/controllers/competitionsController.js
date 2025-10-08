@@ -98,9 +98,18 @@ export const handleGetAllCompetitions = async (req, res) => {
       start_date,
       end_date,
       featured,
+      search,
     } = req.query;
 
     const filters = {};
+
+    // Handle search functionality
+    if (search) {
+      filters.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
+    }
 
     // Handle multiple categories
     if (category) {

@@ -986,3 +986,19 @@ Content-Type: application/json
 ### Search with Multiple Filters
 GET {{baseUrl}}/api/competitions?search=challenge&category=Cuộc thi Hackathon,Khoa học Dữ liệu&level=Người mới bắt đầu,Trung cấp&featured=true
 Content-Type: application/json
+
+### Search Competitions by Title
+GET {{baseUrl}}/api/competitions?search=Hackathon
+Content-Type: application/json
+
+### Search Competitions by Description
+GET {{baseUrl}}/api/competitions?search=innovation
+Content-Type: application/json
+
+### Search with Pagination
+GET {{baseUrl}}/api/competitions?search=challenge&page=1&limit=5
+Content-Type: application/json
+
+### Search Combined with Category Filter
+GET {{baseUrl}}/api/competitions?search=data&category=Khoa học Dữ liệu
+Content-Type: application/json

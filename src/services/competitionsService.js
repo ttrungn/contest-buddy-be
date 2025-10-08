@@ -483,21 +483,6 @@ export const getCompetitionsByUserId = async (userId, options = {}) => {
   }
 };
 
-// Search competitions by title or description
-export const searchCompetitions = async (searchTerm, options = {}) => {
-  try {
-    const searchFilters = {
-      $or: [
-        { title: { $regex: searchTerm, $options: "i" } },
-        { description: { $regex: searchTerm, $options: "i" } },
-      ],
-    };
-    return await getAllCompetitions(searchFilters, options);
-  } catch (error) {
-    throw new Error(`Failed to search competitions: ${error.message}`);
-  }
-};
-
 // Get competition participants by competition ID
 export const getCompetitionParticipants = async (
   competitionId,
