@@ -46,13 +46,18 @@ export const COMPETITION_LEVELS = {
 
 // Trạng thái cuộc thi
 export const COMPETITION_STATUSES = {
-  DRAFT: "Bản nháp",
-  PUBLISHED: "Đã công bố",
   REGISTRATION_OPEN: "Đang mở đăng ký",
   REGISTRATION_CLOSED: "Đã đóng đăng ký",
   IN_PROGRESS: "Đang diễn ra",
   COMPLETED: "Đã hoàn thành",
   CANCELLED: "Đã hủy",
+};
+
+// Trạng thái hiển thị cuộc thi
+export const COMPETITION_PAYING_STATUSES = {
+  UNPAID: "Chưa thanh toán",
+  PAID: "Đã thanh toán",
+  EXPIRED: "Hết hạn",
 };
 
 const CompetitionsSchema = new mongoose.Schema({
@@ -134,10 +139,20 @@ const CompetitionsSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  paying_status: {
+    type: String,
+    required: true,
+    enum: Object.values(COMPETITION_PAYING_STATUSES),
+    default: COMPETITION_PAYING_STATUSES.UNPAID,
+  },
   status: {
     type: String,
     required: true,
     enum: Object.values(COMPETITION_STATUSES),
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false,
   },
 });
 

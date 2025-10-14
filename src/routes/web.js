@@ -122,6 +122,11 @@ import {
   handleCheckParticipantRegistration,
   handleGetUserParticipatedCompetitions,
 } from "../controllers/competitionRegistrationController.js";
+import { handleCreateNewCompetitionOrder } from "../controllers/orderController.js";
+import {
+  handleCreatePaymentUrl,
+  handleWebhook,
+} from "../controllers/paymentsController.js";
 
 let router = express.Router();
 
@@ -441,6 +446,24 @@ let initWebRoutes = (app) => {
     isAdminOrOrganizer,
     handleDeleteCompetition
   );
+
+  // Order routes
+  router.post(
+    "/api/orders/competition",
+    verifyToken,
+    isVerified,
+    isOrganizer,
+    handleCreateNewCompetitionOrder
+  );
+
+  // Payment routes
+  router.post(
+    "/api/payments/create-url",
+    verifyToken,
+    isVerified,
+    handleCreatePaymentUrl
+  );
+  router.post("/api/payments/webhook", handleWebhook);
 
   // Skills routes (new CRUD endpoints)
   router.post(

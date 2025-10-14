@@ -1,6 +1,7 @@
 import Competitions, {
   COMPETITION_CATEGORIES,
   COMPETITION_LEVELS,
+  COMPETITION_PAYING_STATUSES,
   COMPETITION_STATUSES,
 } from "../models/competitions.js";
 import CompetitionTags from "../models/competitionTags.js";
@@ -131,7 +132,10 @@ export const createCompetition = async (competitionData, userId) => {
 // Get competition by ID
 export const getCompetitionById = async (competitionId) => {
   try {
-    const competition = await Competitions.findOne({ id: competitionId });
+    const competition = await Competitions.findOne({
+      id: competitionId,
+      isDeleted: false,
+    });
 
     if (!competition) {
       return null;
@@ -188,12 +192,19 @@ export const getAllCompetitions = async (filters = {}, options = {}) => {
     const { page = 1, limit = 10 } = options;
     const skip = (page - 1) * limit;
 
-    const competitions = await Competitions.find(filters)
+    const competitions = await Competitions.find({
+      ...filters,
+      paying_status: COMPETITION_PAYING_STATUSES.PAID,
+      isDeleted: false,
+    })
       .sort({ created_at: -1 })
       .skip(skip)
       .limit(parseInt(limit));
 
-    const total = await Competitions.countDocuments(filters);
+    const total = await Competitions.countDocuments({
+      ...filters,
+      isDeleted: false,
+    });
     const totalPages = Math.ceil(total / limit);
 
     // Populate tags and required skills for each competition
@@ -419,7 +430,11 @@ export const updateCompetition = async (competitionId, updateData, userId) => {
 // Delete competition
 export const deleteCompetition = async (competitionId) => {
   try {
-    const result = await Competitions.findOneAndDelete({ id: competitionId });
+    const result = await Competitions.findOneAndUpdate(
+      { id: competitionId },
+      { isDeleted: true },
+      { new: true }
+    );
     return result;
   } catch (error) {
     throw new Error(`Failed to delete competition: ${error.message}`);
@@ -564,6 +579,7 @@ export const getCompetitionConstants = async () => {
       categories: COMPETITION_CATEGORIES,
       levels: COMPETITION_LEVELS,
       statuses: COMPETITION_STATUSES,
+      paying_statuses: COMPETITION_PAYING_STATUSES,
     };
   } catch (error) {
     throw new Error(`Failed to get competition constants: ${error.message}`);

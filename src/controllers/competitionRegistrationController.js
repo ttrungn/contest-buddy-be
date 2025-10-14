@@ -4,14 +4,12 @@ import {
   getUserParticipatedCompetitions,
 } from "../services/competitionRegistrationService.js";
 
-// Register for competition
 const handleRegisterForCompetition = async (req, res) => {
   try {
     const { competitionId } = req.params;
     const { teamId } = req.body;
-    const userId = req.user ? req.user.id : null; // Get user ID from auth token
+    const userId = req.user ? req.user.id : null;
 
-    // Validate input
     if (!competitionId) {
       return res.status(400).json({
         success: false,
@@ -31,7 +29,6 @@ const handleRegisterForCompetition = async (req, res) => {
       userId,
       teamId,
     });
-
     if (result.success) {
       return res.status(201).json(result);
     } else {
