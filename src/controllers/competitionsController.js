@@ -1,3 +1,4 @@
+import { COMPETITION_PAYING_STATUSES } from "../models/competitions.js";
 import {
   createCompetition,
   getCompetitionById,
@@ -101,7 +102,7 @@ export const handleGetAllCompetitions = async (req, res) => {
       search,
     } = req.query;
 
-    const filters = {};
+    const filters = { paying_status: COMPETITION_PAYING_STATUSES.PAID };
 
     // Handle search functionality
     if (search) {

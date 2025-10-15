@@ -194,7 +194,6 @@ export const getAllCompetitions = async (filters = {}, options = {}) => {
 
     const competitions = await Competitions.find({
       ...filters,
-      paying_status: COMPETITION_PAYING_STATUSES.PAID,
       isDeleted: false,
     })
       .sort({ created_at: -1 })
