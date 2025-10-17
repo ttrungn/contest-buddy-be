@@ -205,6 +205,7 @@ const login = async (email, password) => {
       id: user.id,
       username: user.username,
       email: user.email,
+      avatar_url: user.avatar_url,
       full_name: user.full_name,
       roles: roleNames,
     };
