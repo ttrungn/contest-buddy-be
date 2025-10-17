@@ -279,6 +279,13 @@ const checkParticipantRegistration = async (competitionId, participantData) => {
 // Get all competitions that user has participated in
 const getUserParticipatedCompetitions = async (userId) => {
   try {
+    // Lấy thời gian hiện tại theo múi giờ Việt Nam
+    const now = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" })
+    );
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
     // Get all participant records for the user
     const participantRecords = await CompetitionParticipants.find({
       user_id: userId,
@@ -289,6 +296,18 @@ const getUserParticipatedCompetitions = async (userId) => {
         success: true,
         data: [],
         message: "No competitions found for this user",
+        upcomingDeadlines: {
+          count: 0,
+          message: "Không có deadline nào trong 7 ngày tới",
+          note: "Bạn có thể yên tâm tập trung vào các cuộc thi hiện tại",
+        },
+        monthlyStats: {
+          totalCompetitions: 0,
+          upcomingDeadlines: 0,
+          registered: 0,
+          interested: 0,
+          online: 0,
+        },
       };
     }
 
@@ -356,10 +375,71 @@ const getUserParticipatedCompetitions = async (userId) => {
         new Date(a.participation.registrationDate)
     );
 
+    // Tìm các deadline sắp tới trong 7 ngày tới
+    const nextWeek = new Date(now);
+    nextWeek.setDate(now.getDate() + 7);
+
+    const upcomingDeadlines = competitions.filter((comp) => {
+      const deadline = new Date(comp.registration_deadline);
+      return deadline > now && deadline <= nextWeek;
+    });
+
+    // Thống kê tháng hiện tại
+    const thisMonthCompetitions = competitions.filter((comp) => {
+      const startDate = new Date(comp.start_date);
+      return (
+        startDate.getMonth() === currentMonth &&
+        startDate.getFullYear() === currentYear
+      );
+    });
+
+    const thisMonthDeadlines = competitions.filter((comp) => {
+      const deadline = new Date(comp.registration_deadline);
+      return (
+        deadline.getMonth() === currentMonth &&
+        deadline.getFullYear() === currentYear
+      );
+    });
+
+    const registeredCompetitions = participantRecords.filter(
+      (p) => p.status === PARTICIPANT_STATUSES.REGISTERED
+    ).length;
+
+    const interestedCompetitions = participantRecords.filter(
+      (p) => p.status === "INTERESTED" // Giả sử có trạng thái này, điều chỉnh nếu cần
+    ).length;
+
+    const onlineCompetitions = competitions.filter(
+      (comp) => !comp.location || comp.location.toLowerCase().includes("online")
+    ).length;
+
     return {
       success: true,
       data: participatedCompetitions,
       totalCompetitions: participatedCompetitions.length,
+      upcomingDeadlines: {
+        count: upcomingDeadlines.length,
+        message:
+          upcomingDeadlines.length > 0
+            ? `${upcomingDeadlines.length} cuộc thi có deadline trong 7 ngày tới`
+            : "Không có deadline nào trong 7 ngày tới",
+        note:
+          upcomingDeadlines.length > 0
+            ? "Hãy chuẩn bị kỹ càng cho các cuộc thi sắp tới"
+            : "Bạn có thể yên tâm tập trung vào các cuộc thi hiện tại",
+        competitions: upcomingDeadlines.map((c) => ({
+          id: c.id,
+          title: c.title,
+          deadline: c.registration_deadline,
+        })),
+      },
+      monthlyStats: {
+        totalCompetitions: thisMonthCompetitions.length,
+        upcomingDeadlines: thisMonthDeadlines.length,
+        registered: registeredCompetitions,
+        interested: interestedCompetitions,
+        online: onlineCompetitions,
+      },
     };
   } catch (error) {
     console.error("Get user participated competitions error:", error);

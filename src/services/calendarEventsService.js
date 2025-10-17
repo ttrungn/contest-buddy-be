@@ -112,6 +112,7 @@ export const findUpcomingEventsNeedingReminders = async (now, windowMs) => {
   const to = new Date(now.getTime() + windowMs);
   const events = await CalendarEvents.find({
     start_date: { $gte: from, $lte: to },
+    reminder_set: { $ne: true }, // Only get events that haven't had reminders sent
   }).lean();
   return events;
 };

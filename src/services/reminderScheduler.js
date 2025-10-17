@@ -7,6 +7,7 @@ import User from "../models/user.js";
 import CompetitionParticipants, {
   PARTICIPANT_STATUSES,
 } from "../models/competitionParticipants.js";
+import CalendarEvents from "../models/calendarEvents.js";
 
 // Múi giờ Việt Nam (UTC+7)
 const VIETNAM_TIMEZONE = "Asia/Ho_Chi_Minh";
@@ -27,13 +28,36 @@ const timingToMs = (timing) => {
   }
 };
 
-const emitReminder = async (io, event) => {
+// Chuyển đổi milliseconds thành chuỗi đếm ngược dễ đọc
+const formatCountdown = (msRemaining) => {
+  const seconds = Math.floor((msRemaining / 1000) % 60);
+  const minutes = Math.floor((msRemaining / (1000 * 60)) % 60);
+  const hours = Math.floor((msRemaining / (1000 * 60 * 60)) % 24);
+  const days = Math.floor(msRemaining / (1000 * 60 * 60 * 24));
+
+  let result = "";
+  if (days > 0) result += `${days} ngày `;
+  if (hours > 0 || days > 0) result += `${hours} giờ `;
+  if (minutes > 0 || hours > 0 || days > 0) result += `${minutes} phút`;
+
+  return result.trim();
+};
+
+const emitReminder = async (io, event, windowMs) => {
+  const now = new Date(
+    new Date().toLocaleString("en-US", { timeZone: VIETNAM_TIMEZONE })
+  );
+  const eventTime = new Date(event.start_date);
+  const msRemaining = eventTime.getTime() - now.getTime();
+  const countdown = formatCountdown(msRemaining);
+
   io.to(`user:${event.user_id}`).emit("calendar:reminder", {
     eventId: event.id,
     title: event.title,
     startDate: event.start_date,
     type: event.type,
     location: event.location,
+    countdown: countdown,
   });
 };
 
@@ -42,15 +66,23 @@ const sendEmailReminderIfEnabled = async (event, userSettings, user) => {
   if (!isEmailEnabled()) return;
   if (!user?.email) return;
 
+  // Tính toán thời gian còn lại
+  const now = new Date(
+    new Date().toLocaleString("en-US", { timeZone: VIETNAM_TIMEZONE })
+  );
+  const eventTime = new Date(event.start_date);
+  const msRemaining = eventTime.getTime() - now.getTime();
+  const countdown = formatCountdown(msRemaining);
+
   const subject = `Nhắc lịch: ${event.title}`;
   // Sử dụng múi giờ Việt Nam (UTC+7) cho thời gian
   const start = new Date(event.start_date).toLocaleString("vi-VN", {
     timeZone: VIETNAM_TIMEZONE,
   });
   const location = event.location ? ` tại ${event.location}` : "";
-  const text = `Sự kiện sắp diễn ra: ${event.title} vào ${start}${location}.`;
+  const text = `Sự kiện sắp diễn ra: ${event.title} vào ${start}${location}. Còn ${countdown} nữa.`;
   const html = `<p>Sự kiện sắp diễn ra: <strong>${event.title}</strong></p>
-  <p>Thời gian: ${start}</p>
+  <p>Thời gian: ${start} (còn <strong>${countdown}</strong> nữa)</p>
   ${event.location ? `<p>Địa điểm: ${event.location}</p>` : ""}
   ${event.description ? `<p>Mô tả: ${event.description}</p>` : ""}
   <p>Cám ơn bạn đã sử dụng Trang thông tin của chúng tôi!</p>`;
@@ -104,6 +136,11 @@ export const startReminderScheduler = (io) => {
       const userById = new Map(users.map((u) => [u.id, u]));
 
       for (const ev of upcoming) {
+        // Skip events that already have reminders set
+        if (ev.reminder_set) {
+          continue;
+        }
+
         // Only send reminders for competition-linked events where the user is registered
         if (!ev.competition_id) {
           // Skip non-competition events per requirement
@@ -125,12 +162,18 @@ export const startReminderScheduler = (io) => {
           : [REMINDER_TIMINGS.ONE_DAY];
         const acceptedWindows = new Set(timings.map(timingToMs));
         if (acceptedWindows.has(windowMs)) {
-          await emitReminder(io, ev);
+          await emitReminder(io, ev, windowMs);
           // Attempt email if enabled
           await sendEmailReminderIfEnabled(
             ev,
             userSettings,
             userById.get(ev.user_id)
+          );
+
+          // Mark the event as having had reminders sent
+          await CalendarEvents.findOneAndUpdate(
+            { id: ev.id },
+            { reminder_set: true }
           );
         }
       }
