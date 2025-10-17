@@ -5,6 +5,7 @@ import User from "../models/user.js";
 import Competitions from "../models/competitions.js";
 import Plans from "../models/plans.js";
 import Organizers from "../models/organizers.js";
+import { createPaymentUrl } from "./paymentService.js";
 
 const generateUniqueId = () => {
   return uuidv4();
@@ -102,9 +103,11 @@ export const createNewCompetitionOrder = async (userId, competitionId) => {
     });
     await newOrderDetail.save();
 
+    var paymentInfo = await createPaymentUrl(userId, newOrder.id);
+
     return {
       success: true,
-      order: newOrder,
+      order: paymentInfo,
     };
   } catch (error) {
     console.error("Create competition order error:", error);
