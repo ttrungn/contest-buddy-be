@@ -17,7 +17,6 @@ export const handleUpdateNotificationSettings = async (req, res) => {
   try {
     const userId = req.user.id;
     const settings = await updateSettingsForUser(userId, req.body);
-
     // If user is disabling email notifications, we should mark all events as having had reminders sent
     // to prevent further emails for existing events
     if (
@@ -31,6 +30,7 @@ export const handleUpdateNotificationSettings = async (req, res) => {
         { reminder_set: true }
       );
     }
+
 
     return res.status(200).json({ success: true, data: settings });
   } catch (error) {
