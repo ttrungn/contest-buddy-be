@@ -7,6 +7,7 @@ import Competitions from "../models/competitions.js";
 import Teams from "../models/teams.js";
 import TeamMembers, { MEMBER_STATUSES } from "../models/teamMembers.js";
 import { v4 as uuidv4 } from "uuid";
+import CalendarEvents, { EVENT_TYPES } from "../models/calendarEvents.js";
 
 // Register for competition
 const registerForCompetition = async (competitionId, registrationData) => {
@@ -59,6 +60,26 @@ const registerForCompetition = async (competitionId, registrationData) => {
       });
 
       await participant.save();
+
+      // Auto-create a calendar event for the competition for this user if not exists
+      const existingEvent = await CalendarEvents.findOne({
+        user_id: userId,
+        competition_id: competitionId,
+        type: EVENT_TYPES.COMPETITION,
+      }).lean();
+      if (!existingEvent) {
+        await CalendarEvents.create({
+          id: uuidv4(),
+          user_id: userId,
+          competition_id: competitionId,
+          title: competition.title,
+          start_date: competition.start_date,
+          end_date: competition.end_date,
+          type: EVENT_TYPES.COMPETITION,
+          description: competition.description || "",
+          location: competition.location || "",
+        });
+      }
 
       // Update competition participants count
       await Competitions.updateOne(
@@ -147,6 +168,34 @@ const registerForCompetition = async (competitionId, registrationData) => {
         { id: competitionId },
         { $inc: { participants_count: savedParticipants.length } }
       );
+
+      // Auto-create calendar events for each team member (idempotent)
+      const bulkCalendarOps = participants.map((p) => ({
+        updateOne: {
+          filter: {
+            user_id: p.user_id,
+            competition_id: competitionId,
+            type: EVENT_TYPES.COMPETITION,
+          },
+          update: {
+            $setOnInsert: {
+              id: uuidv4(),
+              user_id: p.user_id,
+              competition_id: competitionId,
+              title: competition.title,
+              start_date: competition.start_date,
+              end_date: competition.end_date,
+              type: EVENT_TYPES.COMPETITION,
+              description: competition.description || "",
+              location: competition.location || "",
+            },
+          },
+          upsert: true,
+        },
+      }));
+      if (bulkCalendarOps.length > 0) {
+        await CalendarEvents.bulkWrite(bulkCalendarOps);
+      }
 
       return {
         success: true,

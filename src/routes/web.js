@@ -66,6 +66,11 @@ import {
   handleSendMessage,
   handleMarkConversationAsRead,
 } from "../controllers/chatController.js";
+import { handleListUserEvents } from "../controllers/calendarEventsController.js";
+import {
+  handleGetNotificationSettings,
+  handleUpdateNotificationSettings,
+} from "../controllers/notificationSettingsController.js";
 import {
   handleCreateTeam,
   handleGetTeamById,
@@ -321,6 +326,28 @@ let initWebRoutes = (app) => {
     verifyToken,
     isVerified,
     handleMarkConversationAsRead
+  );
+
+  // Calendar events routes
+  router.get(
+    "/api/calendar/events",
+    verifyToken,
+    isVerified,
+    handleListUserEvents
+  );
+
+  // Notification settings routes
+  router.get(
+    "/api/notifications/settings",
+    verifyToken,
+    isVerified,
+    handleGetNotificationSettings
+  );
+  router.put(
+    "/api/notifications/settings",
+    verifyToken,
+    isVerified,
+    handleUpdateNotificationSettings
   );
 
   // Team routes
