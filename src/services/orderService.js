@@ -44,7 +44,7 @@ export const createNewCompetitionOrder = async (userId, competitionId) => {
       };
     }
 
-    const organizer = await Organizers.findOne({ user_id: userId });
+    const organizer = await Organizers.findOne({ owner_user_id: userId });
     if (!organizer) {
       return {
         success: false,
