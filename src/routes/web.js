@@ -127,7 +127,11 @@ import {
   handleCheckParticipantRegistration,
   handleGetUserParticipatedCompetitions,
 } from "../controllers/competitionRegistrationController.js";
-import { handleCreateNewCompetitionOrder } from "../controllers/orderController.js";
+import {
+  handleCreateNewCompetitionOrder,
+  handleGetOrdersByUserId,
+  handleGetOrderDetailsByOrderId,
+} from "../controllers/orderController.js";
 import {
   handleCreatePaymentUrl,
   handleWebhook,
@@ -288,6 +292,13 @@ let initWebRoutes = (app) => {
     verifyToken,
     isVerified,
     handleDeleteUserProject
+  );
+  router.get("/api/orders", verifyToken, isVerified, handleGetOrdersByUserId);
+  router.get(
+    "/api/orders/:orderId",
+    verifyToken,
+    isVerified,
+    handleGetOrderDetailsByOrderId
   );
 
   // Chat routes

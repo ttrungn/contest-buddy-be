@@ -117,3 +117,69 @@ export const createNewCompetitionOrder = async (userId, competitionId) => {
     };
   }
 };
+
+export const getOrdersByUserId = async (userId, filter = {}, options = {}) => {
+  try {
+    const { page = 1, limit = 10 } = options;
+    const skip = (page - 1) * limit;
+    const user = await User.findOne({ id: userId });
+    if (!user) {
+      return {
+        success: false,
+        message: "User not found",
+      };
+    }
+
+    const orders = await Order.find({ user_id: user.id })
+      .sort({ order_date: -1 })
+      .skip(skip)
+      .limit(limit);
+    return {
+      success: true,
+      orders: orders,
+    };
+  } catch (error) {
+    console.error("Get orders by user ID error:", error);
+    return {
+      success: false,
+      message: "Failed to retrieve orders",
+    };
+  }
+};
+
+export const getOrderDetailsByOrderId = async (userId, orderId) => {
+  try {
+    const order = await Order.findOne({ id: orderId, user_id: userId });
+    if (!order) {
+      return {
+        success: false,
+        message: "Order not found",
+      };
+    }
+
+    const orderDetails = await OrderDetail.find({ order_id: orderId });
+    let additionalInfo = {};
+    if (orderDetails.length > 0) {
+      const firstDetail = orderDetails[0];
+      if (firstDetail.product_source_schema === Competitions.collection.name) {
+        additionalInfo.competition = await Competitions.findOne({
+          id: firstDetail.product_id,
+        });
+      }
+    }
+
+    return {
+      success: true,
+      orderDetails:
+        orderDetails.length > 0
+          ? { order, orderDetails, additionalInfo }
+          : null,
+    };
+  } catch (error) {
+    console.error("Get order details by order ID error:", error);
+    return {
+      success: false,
+      message: "Failed to retrieve order details",
+    };
+  }
+};
