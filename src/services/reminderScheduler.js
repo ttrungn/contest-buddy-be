@@ -21,6 +21,8 @@ const timingToMs = (timing) => {
       return 3 * 60 * 60 * 1000;
     case REMINDER_TIMINGS.ONE_DAY:
       return 24 * 60 * 60 * 1000;
+    case REMINDER_TIMINGS.THREE_DAYS:
+      return 3 * 24 * 60 * 60 * 1000;
     case REMINDER_TIMINGS.ONE_WEEK:
       return 7 * 24 * 60 * 60 * 1000;
     default:

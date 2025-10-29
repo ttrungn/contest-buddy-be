@@ -136,6 +136,21 @@ import {
   handleCreatePaymentUrl,
   handleWebhook,
 } from "../controllers/paymentsController.js";
+import {
+  getAllPlans,
+  getPlanById,
+  getUserSubscription,
+  getUserSubscriptionHistory,
+  purchaseSubscription,
+  cancelSubscription,
+  checkFeatureAccess,
+} from "../controllers/userSubscriptionController.js";
+import {
+  handleCreateUserSubscriptionPlan,
+  handleUpdateUserSubscriptionPlan,
+  handleDeleteUserSubscriptionPlan,
+  handleUpdateUserSubscriptionPlanStatus,
+} from "../controllers/userSubscriptionPlansController.js";
 
 let router = express.Router();
 
@@ -534,7 +549,6 @@ let initWebRoutes = (app) => {
   router.post("/api/plans", verifyToken, isVerified, isAdmin, handleCreatePlan);
   router.get("/api/plans", handleGetAllPlans);
   router.get("/api/plans/:id", handleGetPlanById);
-  router.get("/api/plans/:id/features", handleGetPlanWithFeatures);
   router.get("/api/plans/status/:status", handleGetPlansByStatus);
   router.put(
     "/api/plans/:id",
@@ -556,6 +570,68 @@ let initWebRoutes = (app) => {
     isVerified,
     isAdmin,
     handleDeletePlan
+  );
+
+  // User Subscription routes
+  router.get("/api/user-subscriptions/plans", getAllPlans);
+  router.get("/api/user-subscriptions/plans/:planId", getPlanById);
+  router.post(
+    "/api/user-subscriptions/plans",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleCreateUserSubscriptionPlan
+  );
+  router.put(
+    "/api/user-subscriptions/plans/:planId",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleUpdateUserSubscriptionPlan
+  );
+  router.patch(
+    "/api/user-subscriptions/plans/:planId/status",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleUpdateUserSubscriptionPlanStatus
+  );
+  router.delete(
+    "/api/user-subscriptions/plans/:planId",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleDeleteUserSubscriptionPlan
+  );
+  router.get(
+    "/api/user-subscriptions/current",
+    verifyToken,
+    isVerified,
+    getUserSubscription
+  );
+  router.get(
+    "/api/user-subscriptions/history",
+    verifyToken,
+    isVerified,
+    getUserSubscriptionHistory
+  );
+  router.post(
+    "/api/user-subscriptions/purchase",
+    verifyToken,
+    isVerified,
+    purchaseSubscription
+  );
+  router.post(
+    "/api/user-subscriptions/:subscription_id/cancel",
+    verifyToken,
+    isVerified,
+    cancelSubscription
+  );
+  router.get(
+    "/api/user-subscriptions/features/:feature_key/check",
+    verifyToken,
+    isVerified,
+    checkFeatureAccess
   );
 
   return app.use("/", router);
