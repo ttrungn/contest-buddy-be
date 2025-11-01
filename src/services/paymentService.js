@@ -231,6 +231,56 @@ export const processWebhook = async (webhookData) => {
     }
     // Handle failed payment (any other code)
     else {
+      // Check if this is a subscription payment first
+      const subscription = await UserSubscription.findOne({
+        payment_id: orderCode.toString(),
+        status: SUBSCRIPTION_STATUSES.PENDING,
+      });
+
+      if (subscription) {
+        // Determine subscription status based on PayOS code
+        // Common codes: "07" = Cancelled by user, others = Failed/Expired
+        let subscriptionStatus = SUBSCRIPTION_STATUSES.CANCELLED;
+        let cancelledReason = "Payment cancelled on PayOS";
+
+        if (event.code === "07" || event.code === "09") {
+          // 07 = Cancelled by user, 09 = Expired
+          subscriptionStatus = SUBSCRIPTION_STATUSES.CANCELLED;
+          cancelledReason = event.code === "09" 
+            ? "Payment expired on PayOS" 
+            : "Payment cancelled by user on PayOS";
+        } else {
+          // Other failed codes
+          subscriptionStatus = SUBSCRIPTION_STATUSES.CANCELLED;
+          cancelledReason = `Payment failed on PayOS (code: ${event.code})`;
+        }
+
+        // Update subscription status
+        subscription.status = subscriptionStatus;
+        subscription.cancelled_at = new Date();
+        subscription.cancelled_reason = cancelledReason;
+        await subscription.save();
+
+        // Create failed payment record
+        const payment = new Payment({
+          id: uuidv4(),
+          amount: amount || subscription.amount_paid,
+          status: PAYMENT_STATUSES.FAILED,
+          payment_method: PAYMENT_METHODS.E_WALLET,
+          transaction_id: reference || orderCode.toString(),
+          payment_date: new Date(),
+          notes: `PayOS failed transaction (code: ${event.code}): ${reference || "No transaction ID"} - Subscription payment`,
+        });
+        await payment.save();
+
+        return {
+          success: true,
+          message: "Subscription payment cancellation processed successfully",
+          subscription_id: subscription._id,
+        };
+      }
+
+      // Handle regular order payment
       // Find and update order
       const order = await Order.findOne({ order_number: orderCode });
       if (!order) {
