@@ -320,56 +320,6 @@ const getPlansByStatus = async (status) => {
   }
 };
 
-// Get plan with features
-const getPlanWithFeatures = async (planId) => {
-  try {
-    if (!db.Plans || !db.PlanFeatures || !db.Features) {
-      return {
-        success: false,
-        message: "Required models not available",
-      };
-    }
-
-    const plan = await db.Plans.findOne({ id: planId });
-    if (!plan) {
-      return {
-        success: false,
-        message: "Plan not found",
-      };
-    }
-
-    // Get plan features with feature details
-    const planFeatures = await db.PlanFeatures.find({ plan_id: planId });
-
-    const featuresWithDetails = await Promise.all(
-      planFeatures.map(async (pf) => {
-        const feature = await db.Features.findOne({ key: pf.feature_key });
-        return {
-          feature_key: pf.feature_key,
-          feature_name: feature?.name || "Unknown Feature",
-          feature_description: feature?.description || "",
-          value: pf.value,
-        };
-      })
-    );
-
-    return {
-      success: true,
-      data: {
-        ...plan.toObject(),
-        features: featuresWithDetails,
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching plan with features:", error);
-    return {
-      success: false,
-      message: "Failed to fetch plan with features",
-      error: error.message,
-    };
-  }
-};
-
 // Update plan status
 const updatePlanStatus = async (planId, status) => {
   try {
@@ -425,7 +375,6 @@ export {
   updatePlan,
   deletePlan,
   getPlansByStatus,
-  getPlanWithFeatures,
   updatePlanStatus,
   PLAN_STATUSES,
 };

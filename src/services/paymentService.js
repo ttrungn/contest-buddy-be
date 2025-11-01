@@ -12,6 +12,9 @@ import OrderDetail from "../models/orderDetails.js";
 import Competition, {
   COMPETITION_PAYING_STATUSES,
 } from "../models/competitions.js";
+import UserSubscription, {
+  SUBSCRIPTION_STATUSES,
+} from "../models/userSubscriptions.js";
 
 // Initialize PayOS instance
 const payos = new PayOS({
@@ -71,6 +74,69 @@ export const createPaymentUrl = async (userId, orderId) => {
   }
 };
 
+// Create payment URL for subscription
+export const createSubscriptionPaymentUrl = async (userId, paymentData) => {
+  try {
+    // Validate user exists
+    const user = await User.findOne({ id: userId });
+    if (!user) {
+      return {
+        success: false,
+        message: "User not found",
+      };
+    }
+
+    // Extract payment data
+    const { amount, description, orderCode } = paymentData;
+
+    // Generate order code if not provided
+    const finalOrderCode = orderCode || Date.now();
+
+    // Truncate description if exceeds 25 characters (PayOS limit)
+    let finalDescription = String(description || "Subscription payment").trim();
+    if (finalDescription.length > 25) {
+      console.warn("Description exceeds 25 characters, truncating");
+      finalDescription = finalDescription.substring(0, 25);
+    }
+
+    // Prepare checkout request data
+    const checkoutRequestData = {
+      amount: Math.round(Number(amount)),
+      description: finalDescription,
+      orderCode: Number(finalOrderCode),
+      cancelUrl:
+        process.env.PAYOS_CANCEL_URL ||
+        `${process.env.FRONTEND_URL || "http://localhost:3000"}/payment/cancel`,
+      returnUrl:
+        process.env.PAYOS_RETURN_URL ||
+        `${
+          process.env.FRONTEND_URL || "http://localhost:3000"
+        }/payment/success`,
+      buyerName: user.full_name || user.username || "Customer",
+      buyerEmail: user.email,
+      buyerPhone: user.phone || "",
+      buyerAddress: user.address || "",
+      expiredAt: Math.floor(Date.now() / 1000) + 15 * 60, // 15 minutes from now
+    };
+
+    // Create payment request
+    const response = await payos.paymentRequests.create(checkoutRequestData);
+
+    return {
+      success: true,
+      result: response,
+      orderCode: finalOrderCode,
+    };
+  } catch (error) {
+    console.error("Create subscription payment URL error:", error);
+    return {
+      success: false,
+      message: "Failed to create subscription payment URL",
+      error: error.message,
+    };
+  }
+};
+
 export const processWebhook = async (webhookData) => {
   try {
     // Verify webhook data
@@ -87,6 +153,38 @@ export const processWebhook = async (webhookData) => {
 
     // Handle successful payment (code "00")
     if (event.code === "00") {
+      // Check if this is a subscription payment
+      const subscription = await UserSubscription.findOne({
+        payment_id: orderCode.toString(),
+        status: SUBSCRIPTION_STATUSES.PENDING,
+      });
+
+      if (subscription) {
+        // Handle subscription payment
+        subscription.status = SUBSCRIPTION_STATUSES.ACTIVE;
+        subscription.payment_id = reference || orderCode.toString();
+        await subscription.save();
+
+        // Create payment record
+        const payment = new Payment({
+          id: uuidv4(),
+          amount: amount || subscription.amount_paid,
+          status: PAYMENT_STATUSES.PAID,
+          payment_method: PAYMENT_METHODS.BANK_TRANSFER,
+          transaction_id: reference,
+          payment_date: new Date(),
+          notes: `PayOS transaction: ${reference} - Subscription payment`,
+        });
+        await payment.save();
+
+        return {
+          success: true,
+          message: "Subscription payment processed successfully",
+          subscription_id: subscription._id,
+        };
+      }
+
+      // Handle regular order payment
       // Find and update order
       const order = await Order.findOne({ order_number: orderCode });
       if (!order) {
