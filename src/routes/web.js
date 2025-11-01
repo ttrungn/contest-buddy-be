@@ -119,7 +119,6 @@ import {
   handleUpdatePlan,
   handleDeletePlan,
   handleGetPlansByStatus,
-  handleGetPlanWithFeatures,
   handleUpdatePlanStatus,
 } from "../controllers/plansController.js";
 import {
@@ -651,6 +650,7 @@ let initWebRoutes = (app) => {
     verifyToken,
     isVerified,
     checkFeatureAccess
+  );
 
   // Analytics routes (Admin only)
   // User/Organizer statistics
@@ -720,7 +720,6 @@ let initWebRoutes = (app) => {
     isVerified,
     isAdmin,
     handleGetPlanPurchasesByYear
-
   );
 
   return app.use("/", router);
