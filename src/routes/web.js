@@ -144,6 +144,7 @@ import {
   purchaseSubscription,
   cancelSubscription,
   checkFeatureAccess,
+  getSubscriptionDashboard,
 } from "../controllers/userSubscriptionController.js";
 import {
   handleCreateUserSubscriptionPlan,
@@ -614,6 +615,13 @@ let initWebRoutes = (app) => {
     verifyToken,
     isVerified,
     getUserSubscriptionHistory
+  );
+  router.get(
+    "/api/user-subscriptions/dashboard",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    getSubscriptionDashboard
   );
   router.post(
     "/api/user-subscriptions/purchase",

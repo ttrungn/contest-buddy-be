@@ -1,4 +1,6 @@
+import mongoose from "mongoose";
 import * as subscriptionService from "../services/userSubscriptionService.js";
+import { SUBSCRIPTION_STATUSES } from "../models/userSubscriptions.js";
 
 // Get all subscription plans
 export const getAllPlans = async (req, res) => {
@@ -206,6 +208,92 @@ export const checkFeatureAccess = async (req, res) => {
     });
   } catch (error) {
     console.error("Check feature access controller error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// Subscription dashboard metrics (admin)
+export const getSubscriptionDashboard = async (req, res) => {
+  try {
+    const { start_date, end_date, status, plan_id } = req.query;
+
+    const filters = {};
+
+    if (start_date) {
+      const parsedStartDate = new Date(start_date);
+      if (Number.isNaN(parsedStartDate.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid start_date",
+        });
+      }
+      filters.startDate = parsedStartDate;
+    }
+
+    if (end_date) {
+      const parsedEndDate = new Date(end_date);
+      if (Number.isNaN(parsedEndDate.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid end_date",
+        });
+      }
+      filters.endDate = parsedEndDate;
+    }
+
+    if (
+      filters.startDate &&
+      filters.endDate &&
+      filters.startDate > filters.endDate
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "start_date must be before end_date",
+      });
+    }
+
+    if (status) {
+      const normalizedStatus = status.toLowerCase();
+      if (!Object.values(SUBSCRIPTION_STATUSES).includes(normalizedStatus)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid status filter",
+        });
+      }
+      filters.status = normalizedStatus;
+    }
+
+    if (plan_id) {
+      if (!mongoose.Types.ObjectId.isValid(plan_id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid plan_id",
+        });
+      }
+      filters.planId = plan_id;
+    }
+
+    const result = await subscriptionService.getSubscriptionDashboardMetrics(
+      filters
+    );
+
+    if (result.success) {
+      return res.status(200).json({
+        success: true,
+        message: "Get subscription dashboard metrics successfully",
+        data: result.data,
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: result.message || "Failed to get subscription dashboard metrics",
+    });
+  } catch (error) {
+    console.error("Get subscription dashboard controller error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",

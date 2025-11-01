@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import mongoose from "mongoose";
 import UserSubscriptionPlan from "../models/userSubscriptionPlans.js";
 import UserSubscription, {
   SUBSCRIPTION_STATUSES,
@@ -400,6 +401,172 @@ export const checkFeatureAccess = async (userId, featureKey) => {
     return {
       hasAccess: false,
       message: "Error checking feature access",
+    };
+  }
+};
+
+// Dashboard metrics for subscriptions
+export const getSubscriptionDashboardMetrics = async (filters = {}) => {
+  try {
+    const { startDate, endDate, status, planId } = filters;
+
+    const matchStage = {};
+
+    if (status) {
+      matchStage.status = status;
+    }
+
+    if (planId) {
+      matchStage.plan_id = new mongoose.Types.ObjectId(planId);
+    }
+
+    if (startDate || endDate) {
+      matchStage.createdAt = {};
+      if (startDate) {
+        matchStage.createdAt.$gte = startDate;
+      }
+      if (endDate) {
+        matchStage.createdAt.$lte = endDate;
+      }
+    }
+
+    const pipeline = [];
+
+    if (Object.keys(matchStage).length > 0) {
+      pipeline.push({ $match: matchStage });
+    }
+
+    pipeline.push(
+      {
+        $group: {
+          _id: "$plan_id",
+          totalSubscriptions: { $sum: 1 },
+          activeSubscriptions: {
+            $sum: {
+              $cond: [{ $eq: ["$status", SUBSCRIPTION_STATUSES.ACTIVE] }, 1, 0],
+            },
+          },
+          cancelledSubscriptions: {
+            $sum: {
+              $cond: [
+                { $eq: ["$status", SUBSCRIPTION_STATUSES.CANCELLED] },
+                1,
+                0,
+              ],
+            },
+          },
+          expiredSubscriptions: {
+            $sum: {
+              $cond: [
+                { $eq: ["$status", SUBSCRIPTION_STATUSES.EXPIRED] },
+                1,
+                0,
+              ],
+            },
+          },
+          pendingSubscriptions: {
+            $sum: {
+              $cond: [
+                { $eq: ["$status", SUBSCRIPTION_STATUSES.PENDING] },
+                1,
+                0,
+              ],
+            },
+          },
+          totalRevenue: {
+            $sum: {
+              $cond: [
+                {
+                  $in: [
+                    "$status",
+                    [
+                      SUBSCRIPTION_STATUSES.ACTIVE,
+                      SUBSCRIPTION_STATUSES.CANCELLED,
+                      SUBSCRIPTION_STATUSES.EXPIRED,
+                    ],
+                  ],
+                },
+                "$amount_paid",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "user_subscription_plans",
+          localField: "_id",
+          foreignField: "_id",
+          as: "plan",
+        },
+      },
+      {
+        $unwind: {
+          path: "$plan",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          plan_id: { $toString: "$_id" },
+          plan_name: "$plan.name",
+          plan_price: "$plan.price",
+          plan_currency: "$plan.currency",
+          billing_cycle: "$plan.billing_cycle",
+          duration_months: "$plan.duration_months",
+          totalSubscriptions: 1,
+          activeSubscriptions: 1,
+          cancelledSubscriptions: 1,
+          expiredSubscriptions: 1,
+          pendingSubscriptions: 1,
+          totalRevenue: 1,
+        },
+      },
+      {
+        $sort: {
+          totalRevenue: -1,
+          totalSubscriptions: -1,
+        },
+      }
+    );
+
+    const planMetrics = await UserSubscription.aggregate(pipeline);
+
+    const summary = planMetrics.reduce(
+      (acc, plan) => {
+        acc.totalRevenue += plan.totalRevenue || 0;
+        acc.totalSubscriptions += plan.totalSubscriptions || 0;
+        acc.activeSubscriptions += plan.activeSubscriptions || 0;
+        acc.cancelledSubscriptions += plan.cancelledSubscriptions || 0;
+        acc.expiredSubscriptions += plan.expiredSubscriptions || 0;
+        acc.pendingSubscriptions += plan.pendingSubscriptions || 0;
+        return acc;
+      },
+      {
+        totalRevenue: 0,
+        totalSubscriptions: 0,
+        activeSubscriptions: 0,
+        cancelledSubscriptions: 0,
+        expiredSubscriptions: 0,
+        pendingSubscriptions: 0,
+      }
+    );
+
+    return {
+      success: true,
+      data: {
+        summary,
+        plans: planMetrics,
+      },
+    };
+  } catch (error) {
+    console.error("Get subscription dashboard metrics error:", error);
+    return {
+      success: false,
+      message: "Failed to compute subscription dashboard metrics",
+      error: error.message,
     };
   }
 };
