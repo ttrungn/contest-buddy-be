@@ -1,0 +1,268 @@
+### Analytics API Test Cases
+### Requires Admin role and authentication token
+
+@baseUrl = http://localhost:8080
+@adminToken = your-admin-jwt-token-here
+
+### ============================================
+### USER/ORGANIZER STATISTICS
+### ============================================
+
+### 1. Get new users/organizers by custom time range
+GET {{baseUrl}}/api/analytics/users/time-range?startDate=2025-01-01&endDate=2025-12-31
+Authorization: Bearer {{adminToken}}
+
+### 2. Get new users/organizers by custom date range (different dates)
+GET {{baseUrl}}/api/analytics/users/time-range?startDate=2025-10-01&endDate=2025-10-31
+Authorization: Bearer {{adminToken}}
+
+### 3. Get new users/organizers by WEEK in 2025
+GET {{baseUrl}}/api/analytics/users/period?year=2025&groupBy=week
+Authorization: Bearer {{adminToken}}
+
+### 4. Get new users/organizers by MONTH in 2025
+GET {{baseUrl}}/api/analytics/users/period?year=2025&groupBy=month
+Authorization: Bearer {{adminToken}}
+
+### 5. Get new users/organizers by MONTH in 2024
+GET {{baseUrl}}/api/analytics/users/period?year=2024&groupBy=month
+Authorization: Bearer {{adminToken}}
+
+### 6. Get new users/organizers by year (all years)
+GET {{baseUrl}}/api/analytics/users/year
+Authorization: Bearer {{adminToken}}
+
+### 7. Get new users/organizers by year (specific range)
+GET {{baseUrl}}/api/analytics/users/year?startYear=2021&endYear=2025
+Authorization: Bearer {{adminToken}}
+
+### 8. Get new users/organizers by year (single year range)
+GET {{baseUrl}}/api/analytics/users/year?startYear=2025&endYear=2025
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### REVENUE STATISTICS
+### ============================================
+
+### 9. Get revenue by custom time range
+GET {{baseUrl}}/api/analytics/revenue/time-range?startDate=2025-01-01&endDate=2025-12-31
+Authorization: Bearer {{adminToken}}
+
+### 10. Get revenue by custom time range (current month)
+GET {{baseUrl}}/api/analytics/revenue/time-range?startDate=2025-10-01&endDate=2025-10-31
+Authorization: Bearer {{adminToken}}
+
+### 11. Get revenue by custom time range (last 7 days)
+GET {{baseUrl}}/api/analytics/revenue/time-range?startDate=2025-10-24&endDate=2025-10-31
+Authorization: Bearer {{adminToken}}
+
+### 12. Get revenue by WEEK in 2025
+GET {{baseUrl}}/api/analytics/revenue/period?year=2025&groupBy=week
+Authorization: Bearer {{adminToken}}
+
+### 13. Get revenue by MONTH in 2025
+GET {{baseUrl}}/api/analytics/revenue/period?year=2025&groupBy=month
+Authorization: Bearer {{adminToken}}
+
+### 14. Get revenue by MONTH in 2024
+GET {{baseUrl}}/api/analytics/revenue/period?year=2024&groupBy=month
+Authorization: Bearer {{adminToken}}
+
+### 15. Get revenue by year (all years)
+GET {{baseUrl}}/api/analytics/revenue/year
+Authorization: Bearer {{adminToken}}
+
+### 16. Get revenue by year (specific range)
+GET {{baseUrl}}/api/analytics/revenue/year?startYear=2020&endYear=2025
+Authorization: Bearer {{adminToken}}
+
+### 17. Get revenue by year (from 2023 to 2025)
+GET {{baseUrl}}/api/analytics/revenue/year?startYear=2023&endYear=2025
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### ERROR CASES - Should return 400
+### ============================================
+
+### 18. Missing startDate parameter
+GET {{baseUrl}}/api/analytics/users/time-range?endDate=2025-12-31
+Authorization: Bearer {{adminToken}}
+
+### 19. Missing endDate parameter
+GET {{baseUrl}}/api/analytics/users/time-range?startDate=2025-01-01
+Authorization: Bearer {{adminToken}}
+
+### 20. Missing year parameter
+GET {{baseUrl}}/api/analytics/users/period?groupBy=month
+Authorization: Bearer {{adminToken}}
+
+### 21. Invalid groupBy parameter (day not allowed)
+GET {{baseUrl}}/api/analytics/users/period?year=2025&groupBy=day
+Authorization: Bearer {{adminToken}}
+
+### 22. Invalid groupBy parameter (invalid value)
+GET {{baseUrl}}/api/analytics/users/period?year=2025&groupBy=invalid
+Authorization: Bearer {{adminToken}}
+
+### 23. Revenue - Missing startDate
+GET {{baseUrl}}/api/analytics/revenue/time-range?endDate=2025-12-31
+Authorization: Bearer {{adminToken}}
+
+### 24. Revenue - Invalid groupBy (day not allowed)
+GET {{baseUrl}}/api/analytics/revenue/period?year=2025&groupBy=day
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### UNAUTHORIZED CASES - Should return 401
+### ============================================
+
+### 25. No authentication token
+GET {{baseUrl}}/api/analytics/users/time-range?startDate=2025-01-01&endDate=2025-12-31
+
+### 26. Invalid token
+GET {{baseUrl}}/api/analytics/revenue/year
+Authorization: Bearer invalid-token-here
+
+### ============================================
+### ZERO COUNT SCENARIOS (weeks/months/years with no data should return count=0)
+### ============================================
+
+### 27. Users by month in future year (should show all months with count=0)
+GET {{baseUrl}}/api/analytics/users/period?year=2030&groupBy=month
+Authorization: Bearer {{adminToken}}
+
+### 28. Revenue by week in past year (should fill missing weeks with 0)
+GET {{baseUrl}}/api/analytics/revenue/period?year=2020&groupBy=week
+Authorization: Bearer {{adminToken}}
+
+### 29. Users by year range (should fill missing years with count=0)
+GET {{baseUrl}}/api/analytics/users/year?startYear=2018&endYear=2022
+Authorization: Bearer {{adminToken}}
+
+### 30. Revenue by year range (should fill missing years with 0 revenue)
+GET {{baseUrl}}/api/analytics/revenue/year?startYear=2018&endYear=2022
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### COMBINED SCENARIOS
+### ============================================
+
+### 31. Current year users by month
+GET {{baseUrl}}/api/analytics/users/period?year=2025&groupBy=month
+Authorization: Bearer {{adminToken}}
+
+### 32. Current year revenue by month
+GET {{baseUrl}}/api/analytics/revenue/period?year=2025&groupBy=month
+Authorization: Bearer {{adminToken}}
+
+### 33. Q1 2025 users
+GET {{baseUrl}}/api/analytics/users/time-range?startDate=2025-01-01&endDate=2025-03-31
+Authorization: Bearer {{adminToken}}
+
+### 34. Q1 2025 revenue
+GET {{baseUrl}}/api/analytics/revenue/time-range?startDate=2025-01-01&endDate=2025-03-31
+Authorization: Bearer {{adminToken}}
+
+### 35. Full year comparison (users)
+GET {{baseUrl}}/api/analytics/users/year?startYear=2024&endYear=2025
+Authorization: Bearer {{adminToken}}
+
+### 36. Full year comparison (revenue)
+GET {{baseUrl}}/api/analytics/revenue/year?startYear=2024&endYear=2025
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### PLAN PURCHASE STATISTICS
+### ============================================
+
+### 37. Get plan purchases by custom time range
+GET {{baseUrl}}/api/analytics/plans/time-range?startDate=2025-01-01&endDate=2025-12-31
+Authorization: Bearer {{adminToken}}
+
+### 38. Get plan purchases by custom time range (current month)
+GET {{baseUrl}}/api/analytics/plans/time-range?startDate=2025-10-01&endDate=2025-10-31
+Authorization: Bearer {{adminToken}}
+
+### 39. Get plan purchases by custom time range (last 7 days)
+GET {{baseUrl}}/api/analytics/plans/time-range?startDate=2025-10-24&endDate=2025-10-31
+Authorization: Bearer {{adminToken}}
+
+### 40. Get plan purchases by WEEK in 2025
+GET {{baseUrl}}/api/analytics/plans/period?year=2025&groupBy=week
+Authorization: Bearer {{adminToken}}
+
+### 41. Get plan purchases by MONTH in 2025
+GET {{baseUrl}}/api/analytics/plans/period?year=2025&groupBy=month
+Authorization: Bearer {{adminToken}}
+
+### 42. Get plan purchases by MONTH in 2024
+GET {{baseUrl}}/api/analytics/plans/period?year=2024&groupBy=month
+Authorization: Bearer {{adminToken}}
+
+### 43. Get plan purchases by year (all years)
+GET {{baseUrl}}/api/analytics/plans/year
+Authorization: Bearer {{adminToken}}
+
+### 44. Get plan purchases by year (specific range)
+GET {{baseUrl}}/api/analytics/plans/year?startYear=2020&endYear=2025
+Authorization: Bearer {{adminToken}}
+
+### 45. Get plan purchases by year (from 2023 to 2025)
+GET {{baseUrl}}/api/analytics/plans/year?startYear=2023&endYear=2025
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### PLAN PURCHASE ERROR CASES - Should return 400
+### ============================================
+
+### 46. Missing startDate parameter
+GET {{baseUrl}}/api/analytics/plans/time-range?endDate=2025-12-31
+Authorization: Bearer {{adminToken}}
+
+### 47. Missing endDate parameter
+GET {{baseUrl}}/api/analytics/plans/time-range?startDate=2025-01-01
+Authorization: Bearer {{adminToken}}
+
+### 48. Missing year parameter
+GET {{baseUrl}}/api/analytics/plans/period?groupBy=month
+Authorization: Bearer {{adminToken}}
+
+### 49. Invalid groupBy parameter (day not allowed)
+GET {{baseUrl}}/api/analytics/plans/period?year=2025&groupBy=day
+Authorization: Bearer {{adminToken}}
+
+### 50. Invalid groupBy parameter (invalid value)
+GET {{baseUrl}}/api/analytics/plans/period?year=2025&groupBy=invalid
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### PLAN PURCHASE ZERO COUNT SCENARIOS
+### ============================================
+
+### 51. Plan purchases by month in future year (should show all months with count=0)
+GET {{baseUrl}}/api/analytics/plans/period?year=2030&groupBy=month
+Authorization: Bearer {{adminToken}}
+
+### 52. Plan purchases by week in past year (should fill missing weeks with 0)
+GET {{baseUrl}}/api/analytics/plans/period?year=2020&groupBy=week
+Authorization: Bearer {{adminToken}}
+
+### 53. Plan purchases by year range (should fill missing years with count=0)
+GET {{baseUrl}}/api/analytics/plans/year?startYear=2018&endYear=2022
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### COMBINED PLAN PURCHASE SCENARIOS
+### ============================================
+
+### 54. Current year plan purchases by month
+GET {{baseUrl}}/api/analytics/plans/period?year=2025&groupBy=month
+Authorization: Bearer {{adminToken}}
+
+### 55. Q1 2025 plan purchases
+GET {{baseUrl}}/api/analytics/plans/time-range?startDate=2025-01-01&endDate=2025-03-31
+Authorization: Bearer {{adminToken}}
+
+### 56. Full year comparison (plan purchases)
+GET {{baseUrl}}/api/analytics/plans/year?startYear=2024&endYear=2025
+Authorization: Bearer {{adminToken}}

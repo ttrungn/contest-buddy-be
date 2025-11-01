@@ -152,6 +152,17 @@ import {
   handleDeleteUserSubscriptionPlan,
   handleUpdateUserSubscriptionPlanStatus,
 } from "../controllers/userSubscriptionPlansController.js";
+import {
+  handleGetNewUsersByTimeRange,
+  handleGetNewUsersByPeriodInYear,
+  handleGetNewUsersByYear,
+  handleGetRevenueByTimeRange,
+  handleGetRevenueByPeriodInYear,
+  handleGetRevenueByYear,
+  handleGetPlanPurchasesByTimeRange,
+  handleGetPlanPurchasesByPeriodInYear,
+  handleGetPlanPurchasesByYear,
+} from "../controllers/analyticsController.js";
 
 let router = express.Router();
 
@@ -640,6 +651,76 @@ let initWebRoutes = (app) => {
     verifyToken,
     isVerified,
     checkFeatureAccess
+
+  // Analytics routes (Admin only)
+  // User/Organizer statistics
+  router.get(
+    "/api/analytics/users/time-range",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleGetNewUsersByTimeRange
+  );
+  router.get(
+    "/api/analytics/users/period",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleGetNewUsersByPeriodInYear
+  );
+  router.get(
+    "/api/analytics/users/year",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleGetNewUsersByYear
+  );
+
+  // Revenue statistics
+  router.get(
+    "/api/analytics/revenue/time-range",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleGetRevenueByTimeRange
+  );
+  router.get(
+    "/api/analytics/revenue/period",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleGetRevenueByPeriodInYear
+  );
+  router.get(
+    "/api/analytics/revenue/year",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleGetRevenueByYear
+  );
+
+  // Plan purchase analytics routes
+  router.get(
+    "/api/analytics/plans/time-range",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleGetPlanPurchasesByTimeRange
+  );
+  router.get(
+    "/api/analytics/plans/period",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleGetPlanPurchasesByPeriodInYear
+  );
+  router.get(
+    "/api/analytics/plans/year",
+    verifyToken,
+    isVerified,
+    isAdmin,
+    handleGetPlanPurchasesByYear
+
   );
 
   return app.use("/", router);
