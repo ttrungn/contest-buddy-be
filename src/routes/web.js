@@ -102,6 +102,7 @@ import {
   handleGetCompetitionsByUserId,
   handleGetCompetitionParticipants,
   handleGetCompetitionConstants,
+  handleGetCompetitionsWithTopPlans,
 } from "../controllers/competitionsController.js";
 import {
   handleCreateSkill,
@@ -162,6 +163,7 @@ import {
   handleGetPlanPurchasesByPeriodInYear,
   handleGetPlanPurchasesByYear,
 } from "../controllers/analyticsController.js";
+import { handleTriggerCompetitionEmailJob } from "../controllers/jobsController.js";
 
 let router = express.Router();
 
@@ -456,6 +458,7 @@ let initWebRoutes = (app) => {
     handleCreateCompetition
   );
   router.get("/api/competitions/constants", handleGetCompetitionConstants);
+  router.get("/api/competitions/banners", handleGetCompetitionsWithTopPlans);
   router.get("/api/competitions", handleGetAllCompetitions);
   router.get("/api/competitions/featured", handleGetFeaturedCompetitions);
   router.get(
@@ -656,70 +659,79 @@ let initWebRoutes = (app) => {
   // User/Organizer statistics
   router.get(
     "/api/analytics/users/time-range",
-    verifyToken,
-    isVerified,
-    isAdmin,
+    // verifyToken,
+    // isVerified,
+    // isAdmin,
     handleGetNewUsersByTimeRange
   );
   router.get(
     "/api/analytics/users/period",
-    verifyToken,
-    isVerified,
-    isAdmin,
+    // verifyToken,
+    // isVerified,
+    // isAdmin,
     handleGetNewUsersByPeriodInYear
   );
   router.get(
     "/api/analytics/users/year",
-    verifyToken,
-    isVerified,
-    isAdmin,
+    // verifyToken,
+    // isVerified,
+    // isAdmin,
     handleGetNewUsersByYear
   );
 
   // Revenue statistics
   router.get(
     "/api/analytics/revenue/time-range",
-    verifyToken,
-    isVerified,
-    isAdmin,
+    // verifyToken,
+    // isVerified,
+    // isAdmin,
     handleGetRevenueByTimeRange
   );
   router.get(
     "/api/analytics/revenue/period",
-    verifyToken,
-    isVerified,
-    isAdmin,
+    // verifyToken,
+    // isVerified,
+    // isAdmin,
     handleGetRevenueByPeriodInYear
   );
   router.get(
     "/api/analytics/revenue/year",
-    verifyToken,
-    isVerified,
-    isAdmin,
+    // verifyToken,
+    // isVerified,
+    // isAdmin,
     handleGetRevenueByYear
   );
 
   // Plan purchase analytics routes
   router.get(
     "/api/analytics/plans/time-range",
-    verifyToken,
-    isVerified,
-    isAdmin,
+    // verifyToken,
+    // isVerified,
+    // isAdmin,
     handleGetPlanPurchasesByTimeRange
   );
   router.get(
     "/api/analytics/plans/period",
-    verifyToken,
-    isVerified,
-    isAdmin,
+    // verifyToken,
+    // isVerified,
+    // isAdmin,
     handleGetPlanPurchasesByPeriodInYear
   );
   router.get(
     "/api/analytics/plans/year",
+    // verifyToken,
+    // isVerified,
+    // isAdmin,
+    handleGetPlanPurchasesByYear
+  );
+
+  // Jobs/Cron routes (Admin only - for manual testing)
+  router.post(
+    "/api/jobs/competition-email/trigger",
     verifyToken,
     isVerified,
     isAdmin,
-    handleGetPlanPurchasesByYear
+    handleTriggerCompetitionEmailJob
   );
 
   return app.use("/", router);

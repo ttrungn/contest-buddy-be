@@ -11,6 +11,7 @@ import {
   getCompetitionsByUserId,
   getCompetitionParticipants,
   getCompetitionConstants,
+  getCompetitionsWithTopPlans,
 } from "../services/competitionsService.js";
 
 // Create a new competition
@@ -410,6 +411,95 @@ export const handleGetCompetitionConstants = async (req, res) => {
     res.status(500).json({
       status: "error",
       message: error.message || "Failed to get competition constants",
+    });
+  }
+};
+
+// Get competitions with top 1 or top 2 plans
+export const handleGetCompetitionsWithTopPlans = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = "plan_price",
+      sortOrder = "desc",
+      category,
+      status,
+      level,
+      start_date,
+      end_date,
+      featured,
+      search,
+    } = req.query;
+
+    const filters = { paying_status: COMPETITION_PAYING_STATUSES.PAID };
+
+    // Handle search functionality
+    if (search) {
+      filters.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Handle multiple categories
+    if (category) {
+      if (Array.isArray(category)) {
+        filters.category = { $in: category };
+      } else {
+        filters.category = category;
+      }
+    }
+
+    // Handle multiple statuses
+    if (status) {
+      if (Array.isArray(status)) {
+        filters.status = { $in: status };
+      } else {
+        filters.status = status;
+      }
+    }
+
+    // Handle multiple levels
+    if (level) {
+      if (Array.isArray(level)) {
+        filters.level = { $in: level };
+      } else {
+        filters.level = level;
+      }
+    }
+
+    // Handle date filters
+    if (start_date) {
+      filters.start_date = { $gte: new Date(start_date) };
+    }
+    if (end_date) {
+      filters.end_date = { $lte: new Date(end_date) };
+    }
+
+    // Handle featured filter
+    if (featured) {
+      filters.featured = featured === "true";
+    }
+
+    const result = await getCompetitionsWithTopPlans(filters, {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      sortBy,
+      sortOrder,
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: result.data,
+      pagination: result.pagination,
+      topPlans: result.topPlans,
+    });
+  } catch (error) {
+    console.error("Error getting competitions with top plans:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message || "Failed to get competitions with top plans",
     });
   }
 };

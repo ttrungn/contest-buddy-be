@@ -3,6 +3,7 @@ import { Server as SocketIOServer } from "socket.io";
 import { createApp, initializeApp } from "./app.js";
 import registerChatHandlers from "./sockets/chatSocket.js";
 import { startReminderScheduler } from "./services/reminderScheduler.js";
+import { startCompetitionEmailJob } from "./jobs/competitionEmailJob.js";
 
 const { app, allowedOrigins } = createApp();
 
@@ -22,6 +23,9 @@ registerChatHandlers(io);
 
 // Start reminder scheduler
 const stopScheduler = startReminderScheduler(io);
+
+// Start competition email job (runs every Monday and Wednesday at 7:00 AM)
+startCompetitionEmailJob();
 
 const port = process.env.PORT || 8080;
 server.listen(port, () => {

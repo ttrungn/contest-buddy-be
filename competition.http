@@ -1,0 +1,18 @@
+# Competition API Tests
+# Base URL
+@baseUrl = http://localhost:8080
+@token = YOUR_USER_TOKEN_HERE
+@organizerToken = YOUR_ORGANIZER_TOKEN_HERE
+@adminToken = YOUR_ADMIN_TOKEN_HERE
+
+### Test get banners with Large Limit
+GET {{baseUrl}}/api/competitions/banners
+
+###############################################################################
+# 📧 BATCH JOBS & EMAIL NOTIFICATIONS
+###############################################################################
+
+### Trigger Competition Email Job Manually (Admin Only)
+# This will send competition recommendation emails to all verified users
+POST {{baseUrl}}/api/jobs/competition-email/trigger
+Authorization: Bearer {{adminToken}}

@@ -189,24 +189,43 @@ export const getCompetitionById = async (competitionId) => {
 // Get all competitions with pagination and filters
 export const getAllCompetitions = async (filters = {}, options = {}) => {
   try {
-    const { page = 1, limit = 10 } = options;
+    const { page = 1, limit = 10, sortBy = "created_at", sortOrder = "desc" } = options;
     const skip = (page - 1) * limit;
 
-    const competitions = await Competitions.find({
-      ...filters,
-      isDeleted: false,
-    })
-      .sort({ created_at: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+    // Determine if we need to sort by plan price
+    const sortByPlanPrice = sortBy === "plan_price";
+    
+    let competitions;
+    let total;
+    
+    if (sortByPlanPrice) {
+      // For plan price sorting, we need to fetch all competitions first, then sort in JavaScript
+      competitions = await Competitions.find({
+        ...filters,
+        isDeleted: false,
+      });
 
-    const total = await Competitions.countDocuments({
-      ...filters,
-      isDeleted: false,
-    });
-    const totalPages = Math.ceil(total / limit);
+      total = competitions.length;
+    } else {
+      // For other sorting, use MongoDB sorting
+      const sortOptions = {};
+      sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
 
-    // Populate tags and required skills for each competition
+      competitions = await Competitions.find({
+        ...filters,
+        isDeleted: false,
+      })
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(parseInt(limit));
+
+      total = await Competitions.countDocuments({
+        ...filters,
+        isDeleted: false,
+      });
+    }
+
+    // Populate tags, required skills, and plan data for each competition
     const competitionsWithDetails = await Promise.all(
       competitions.map(async (competition) => {
         const competitionObj = competition.toObject();
@@ -223,16 +242,58 @@ export const getAllCompetitions = async (filters = {}, options = {}) => {
           { name: 1, category: 1, _id: 0 }
         );
 
-        // Add tags and required skills
+        // Get plan data for sorting and display
+        let planData = null;
+        if (competition.plan_id && db.Plans) {
+          planData = await db.Plans.findOne(
+            { id: competition.plan_id },
+            { name: 1, price_amount: 1, currency: 1, status: 1 }
+          );
+        }
+
+        // Add tags, required skills, and plan data
         competitionObj.competitionTags = competitionTags.map((tag) => tag.tag);
         competitionObj.competitionRequiredSkills = competitionRequiredSkills;
+        if (planData) {
+          competitionObj.plan = planData;
+          competitionObj._planPrice = planData.price_amount || 0; // For sorting
+        } else {
+          competitionObj._planPrice = 0; // Default for competitions without plans
+        }
 
         return competitionObj;
       })
     );
 
+    let finalCompetitions = competitionsWithDetails;
+
+    // Handle plan price sorting and pagination in JavaScript
+    if (sortByPlanPrice) {
+      // Sort by plan price
+      finalCompetitions.sort((a, b) => {
+        const priceA = a._planPrice;
+        const priceB = b._planPrice;
+        
+        if (sortOrder === "asc") {
+          return priceA - priceB;
+        } else {
+          return priceB - priceA;
+        }
+      });
+
+      // Apply pagination
+      finalCompetitions = finalCompetitions.slice(skip, skip + parseInt(limit));
+    }
+
+    // Remove temporary sorting field
+    finalCompetitions.forEach(competition => {
+      delete competition._planPrice;
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
     return {
-      data: competitionsWithDetails,
+      data: finalCompetitions,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -582,5 +643,131 @@ export const getCompetitionConstants = async () => {
     };
   } catch (error) {
     throw new Error(`Failed to get competition constants: ${error.message}`);
+  }
+};
+
+// Get competitions with top 1 or top 2 plans based on price
+export const getCompetitionsWithTopPlans = async (filters = {}, options = {}) => {
+  try {
+    const { page = 1, limit = 10, sortBy = "plan_price", sortOrder = "desc" } = options;
+    const skip = (page - 1) * limit;
+
+    // First, get all active plans and sort by price to find top 2
+    if (!db.Plans) {
+      throw new Error("Plans model not available");
+    }
+
+    const topPlans = await db.Plans.find({ status: "active" })
+      .sort({ price_amount: -1 })
+      .limit(2)
+      .select("id name price_amount currency");
+
+    if (!topPlans || topPlans.length === 0) {
+      return {
+        data: [],
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+        topPlans: [],
+      };
+    }
+
+    // Extract plan IDs
+    const topPlanIds = topPlans.map(plan => plan.id);
+
+    // Build query to find competitions with these plan IDs
+    const competitionFilters = {
+      ...filters,
+      isDeleted: false,
+      plan_id: { $in: topPlanIds },
+    };
+
+    // Get all matching competitions (we'll sort them after fetching plan data)
+    const competitions = await Competitions.find(competitionFilters);
+    const total = competitions.length;
+
+    // Populate tags, required skills, and plan data for each competition
+    const competitionsWithDetails = await Promise.all(
+      competitions.map(async (competition) => {
+        const competitionObj = competition.toObject();
+
+        // Get competition tags
+        const competitionTags = await CompetitionTags.find(
+          { competition_id: competition.id },
+          { tag: 1, _id: 0 }
+        );
+
+        // Get competition required skills
+        const competitionRequiredSkills = await CompetitionRequiredSkills.find(
+          { competition_id: competition.id },
+          { name: 1, category: 1, _id: 0 }
+        );
+
+        // Get plan data
+        let planData = null;
+        if (competition.plan_id) {
+          planData = await db.Plans.findOne(
+            { id: competition.plan_id },
+            { name: 1, price_amount: 1, currency: 1, status: 1 }
+          );
+        }
+
+        // Add tags, required skills, and plan data
+        competitionObj.competitionTags = competitionTags.map((tag) => tag.tag);
+        competitionObj.competitionRequiredSkills = competitionRequiredSkills;
+        if (planData) {
+          competitionObj.plan = planData;
+          competitionObj._planPrice = planData.price_amount || 0;
+        } else {
+          competitionObj._planPrice = 0;
+        }
+
+        return competitionObj;
+      })
+    );
+
+    // Sort competitions randomly using Fisher-Yates shuffle algorithm
+    let sortedCompetitions = [...competitionsWithDetails];
+    
+    // Fisher-Yates shuffle for random sorting
+    for (let i = sortedCompetitions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [sortedCompetitions[i], sortedCompetitions[j]] = [sortedCompetitions[j], sortedCompetitions[i]];
+    }
+
+    // Apply pagination
+    const paginatedCompetitions = sortedCompetitions.slice(skip, skip + parseInt(limit));
+
+    // Remove temporary sorting field
+    paginatedCompetitions.forEach(competition => {
+      delete competition._planPrice;
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: paginatedCompetitions,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+      topPlans: topPlans.map(plan => ({
+        id: plan.id,
+        name: plan.name,
+        price_amount: plan.price_amount,
+        currency: plan.currency,
+      })),
+    };
+  } catch (error) {
+    throw new Error(`Failed to get competitions with top plans: ${error.message}`);
   }
 };
