@@ -54,7 +54,7 @@ export const createPaymentUrl = async (userId, orderId) => {
       buyerEmail: user.email,
       buyerPhone: user.phone,
       buyerAddress: user.address,
-      expiredAt: Math.floor(Date.now() / 1000) + 15 * 60, // 15 minutes from now
+      expiredAt: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hours from now
     };
 
     // Create payment request
